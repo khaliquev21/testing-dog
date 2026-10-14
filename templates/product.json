@@ -156,6 +156,7 @@
         "step_3": {
           "type": "step",
           "settings": {
+            "image": "shopify://shop_images/pet_grooming_image_3_upload.jpg",
             "video_url": "",
             "image_alt": "",
             "product_media_position": 0,
