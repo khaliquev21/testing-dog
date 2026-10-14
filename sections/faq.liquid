@@ -1,0 +1,67 @@
+<section class="pw-faq" id="faq" data-section-id="{{ section.id }}">
+  <div class="pw-faq__inner pw-container pw-container--narrow">
+    <div class="pw-faq__head">
+      {%- if section.settings.eyebrow != blank -%}
+        <span class="pw-eyebrow">{{ section.settings.eyebrow }}</span>
+      {%- endif -%}
+      <h2 class="pw-faq__heading">{{ section.settings.heading }}</h2>
+    </div>
+
+    <faq-accordion class="pw-faq__list">
+      {%- assign shown = 0 -%}
+      {%- for block in section.blocks -%}
+        {%- comment -%}
+          Questions without an answer are hidden from shoppers (nothing is invented).
+          In the theme editor they stay visible so you can finish writing them.
+        {%- endcomment -%}
+        {%- if block.settings.answer != blank or request.design_mode -%}
+          {%- assign shown = shown | plus: 1 -%}
+          <details class="pw-faq__item" {% if shown == 1 and section.settings.first_open %}open{% endif %} {{ block.shopify_attributes }}>
+            <summary class="pw-faq__q">
+              <span>{{ block.settings.question }}</span>
+              <span class="pw-faq__icon">{% render 'icon', name: 'plus', size: 16, stroke: 2.4 %}</span>
+            </summary>
+            <div class="pw-faq__a rte">
+              {%- if block.settings.answer != blank -%}
+                {{ block.settings.answer }}
+              {%- else -%}
+                <p class="pw-faq__draft">Add the answer in the theme editor. This question is hidden from shoppers until you do.</p>
+              {%- endif -%}
+            </div>
+          </details>
+        {%- endif -%}
+      {%- endfor -%}
+    </faq-accordion>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Small heading", "default": "FAQ" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Questions, answered" },
+    { "type": "checkbox", "id": "first_open", "label": "Open the first question", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "Question", "default": "Which pets can use the brush?" },
+        { "type": "richtext", "id": "answer", "label": "Answer", "info": "Questions without an answer are hidden from shoppers." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        { "type": "question", "settings": { "question": "Which pets can use the brush?", "answer": "<p>It's made for both dogs and cats.</p>" } },
+        { "type": "question", "settings": { "question": "Which coat types is it suitable for?" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

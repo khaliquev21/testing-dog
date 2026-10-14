@@ -1,0 +1,55 @@
+{%- comment -%}
+  A muted, looping, inline product video with an unobtrusive play / pause control.
+  It only ever plays the footage you give it. Nothing is added on top of the video.
+
+  Accepts:
+  - video: Shopify-hosted video object (from a "video" setting or product media)
+  - video_url: direct link to an MP4 or WebM file (used when no video object is given)
+  - poster: image object shown before the video plays (optional)
+  - label: accessible description of what the video shows
+  - size: 'lg' for the large circular play button (default) or 'sm' for a compact one
+  - max_height: largest rendition height to use for Shopify-hosted video (default 1080)
+  - class: extra class names
+{%- endcomment -%}
+{%- liquid
+  assign video_label = label | default: 'Product video'
+  assign control_size = size | default: 'lg'
+  assign source_type = 'video/mp4'
+  if video == blank and video_url != blank
+    assign url_clean = video_url | split: '?' | first | downcase
+    if url_clean contains '.webm'
+      assign source_type = 'video/webm'
+    elsif url_clean contains '.mov'
+      assign source_type = 'video/quicktime'
+    endif
+  endif
+-%}
+<loop-video class="pw-loop pw-loop--{{ control_size }} {{ class }}">
+  <video
+    class="pw-loop__video"
+    muted
+    loop
+    playsinline
+    preload="none"
+    disablepictureinpicture
+    disableremoteplayback
+    aria-label="{{ video_label | escape }}"
+    {%- if poster != blank %}
+      poster="{{ poster | image_url: width: 1200 }}"
+    {%- elsif video != blank and video.preview_image != blank %}
+      poster="{{ video.preview_image | image_url: width: 1200 }}"
+    {%- endif %}
+  >
+    {%- if video != blank -%}
+      {% render 'video-sources', video: video, max_height: max_height %}
+    {%- elsif video_url != blank -%}
+      <source src="{{ video_url }}" type="{{ source_type }}">
+    {%- endif -%}
+  </video>
+  <button type="button" class="pw-loop__play" data-loop-play aria-label="{{ 'accessibility.play_video' | t }}">
+    {% render 'icon', name: 'play', size: 28 %}
+  </button>
+  <button type="button" class="pw-loop__toggle" data-loop-toggle aria-label="{{ 'accessibility.pause_video' | t }}">
+    {% render 'icon', name: 'pause', size: 16 %}
+  </button>
+</loop-video>

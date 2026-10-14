@@ -1,0 +1,363 @@
+{%- liquid
+  assign brand = settings.brand_name | default: shop.name
+  assign current_variant = product.selected_or_first_available_variant
+  assign form_id = 'ProductForm-' | append: section.id
+  assign qty_id = 'Quantity-' | append: section.id
+  assign media_total = product.media.size
+  assign has_variants = false
+  unless product.has_only_default_variant
+    assign has_variants = true
+  endunless
+
+  assign max_qty = settings.max_quantity | default: 10
+  if current_variant.inventory_management == 'shopify' and current_variant.inventory_policy == 'deny'
+    if current_variant.inventory_quantity > 0 and current_variant.inventory_quantity < max_qty
+      assign max_qty = current_variant.inventory_quantity
+    endif
+  endif
+
+  assign first_image_media = nil
+  for media in product.media
+    if media.media_type == 'image' and first_image_media == nil
+      assign first_image_media = media
+    endif
+  endfor
+-%}
+
+{%- if section.settings.show_breadcrumb -%}
+  <nav class="pw-breadcrumb pw-container" aria-label="{{ 'product.breadcrumb' | t }}">
+    <a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a>
+    <span aria-hidden="true">/</span>
+    <a href="{{ routes.all_products_collection_url }}">{{ 'collection.title' | t }}</a>
+    <span aria-hidden="true">/</span>
+    <span class="pw-breadcrumb__current">{{ product.title }}</span>
+  </nav>
+{%- endif -%}
+
+<section class="pw-product" data-section-id="{{ section.id }}" data-product-id="{{ product.id }}">
+  <div class="pw-product__grid pw-container">
+
+    {%- comment -%} ---------- Gallery: real Shopify product media ---------- {%- endcomment -%}
+    <product-gallery class="pw-gallery" data-autoplay="{{ section.settings.autoplay_videos }}" data-total="{{ media_total }}">
+      <div class="pw-gallery__stage" role="group" aria-roledescription="carousel" aria-label="{{ 'accessibility.product_media' | t }}">
+        {%- if media_total > 0 -%}
+          <div class="pw-gallery__slides" data-gallery-slides>
+            {%- for media in product.media -%}
+              <div
+                class="pw-gallery__slide{% if forloop.first %} is-active{% endif %}"
+                data-gallery-slide
+                data-index="{{ forloop.index0 }}"
+                data-media-id="{{ media.id }}"
+                data-media-type="{{ media.media_type }}"
+                {% unless forloop.first %}aria-hidden="true"{% endunless %}
+              >
+                {%- case media.media_type -%}
+                  {%- when 'image' -%}
+                    {%- assign slide_alt = media.alt | default: product.title -%}
+                    {%- if forloop.first -%}
+                      {{
+                        media
+                        | image_url: width: 1600
+                        | image_tag: widths: '500, 700, 900, 1200, 1600', sizes: '(min-width: 990px) 560px, 100vw', loading: 'eager', fetchpriority: 'high', alt: slide_alt, class: 'pw-media__img pw-fit--contain'
+                      }}
+                    {%- else -%}
+                      {{
+                        media
+                        | image_url: width: 1600
+                        | image_tag: widths: '500, 700, 900, 1200, 1600', sizes: '(min-width: 990px) 560px, 100vw', loading: 'lazy', alt: slide_alt, class: 'pw-media__img pw-fit--contain'
+                      }}
+                    {%- endif -%}
+                  {%- when 'video' -%}
+                    {%- assign video_label = media.alt | default: product.title -%}
+                    {% render 'loop-video',
+                      video: media,
+                      label: video_label,
+                      size: 'lg',
+                      max_height: 1080,
+                      class: 'pw-media__fill'
+                    %}
+                  {%- when 'external_video' -%}
+                    {{ media | external_video_tag }}
+                  {%- else -%}
+                    {{ media | media_tag: image_size: '1100x' }}
+                {%- endcase -%}
+              </div>
+            {%- endfor -%}
+          </div>
+
+          {%- if media_total > 1 -%}
+            <button type="button" class="pw-gallery__arrow pw-gallery__arrow--prev" data-gallery-prev aria-label="{{ 'accessibility.previous_image' | t }}">
+              {% render 'icon', name: 'chevron-left', size: 20, stroke: 2 %}
+            </button>
+            <button type="button" class="pw-gallery__arrow pw-gallery__arrow--next" data-gallery-next aria-label="{{ 'accessibility.next_image' | t }}">
+              {% render 'icon', name: 'chevron-right', size: 20, stroke: 2 %}
+            </button>
+            <span class="pw-gallery__counter" aria-live="polite"><span data-gallery-current>1</span> / {{ media_total }}</span>
+          {%- endif -%}
+        {%- else -%}
+          <div class="pw-gallery__empty">
+            {%- if request.design_mode -%}
+              {% render 'placeholder-slot',
+                kind: 'photo',
+                tag: 'PRODUCT GALLERY',
+                title: 'Add your genuine product photos and videos to this product in Shopify admin',
+                hint: 'Order: 01 main image, 02 bristle close-up, 03 self-cleaning, 04 mist and water tank, 05 IPX7, 06 in the box, 07 dog lifestyle, 08 cat lifestyle, then the looping videos.'
+              %}
+            {%- else -%}
+              {% render 'icon', name: 'paw', size: 64, class: 'pw-gallery__empty-mark' %}
+              <span class="pw-gallery__empty-text">{{ 'product.no_media' | t }}</span>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if media_total > 1 -%}
+        <div class="pw-gallery__thumbs" role="group" aria-label="{{ 'accessibility.product_media' | t }}">
+          {%- for media in product.media -%}
+            <button
+              type="button"
+              class="pw-thumb{% if media.media_type != 'image' %} pw-thumb--video{% endif %}{% if forloop.first %} is-active{% endif %}"
+              data-gallery-thumb
+              data-index="{{ forloop.index0 }}"
+              data-media-id="{{ media.id }}"
+              aria-label="{{ 'accessibility.show_media' | t: position: forloop.index, total: media_total }}"
+              aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}"
+            >
+              {{
+                media.preview_image
+                | image_url: width: 160, height: 160
+                | image_tag: width: 80, height: 80, loading: 'lazy', alt: '', class: 'pw-thumb__img'
+              }}
+              {%- if media.media_type != 'image' -%}
+                <span class="pw-thumb__play">{% render 'icon', name: 'play', size: 14 %}</span>
+              {%- endif -%}
+            </button>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </product-gallery>
+
+    {%- comment -%} ---------- Product information and purchase ---------- {%- endcomment -%}
+    <div class="pw-product__info" id="ProductInfo-{{ section.id }}">
+      <div class="pw-product__heading">
+        <span class="pw-eyebrow">{{ brand | upcase }}</span>
+        <h1 class="pw-product__title">{{ product.title }}</h1>
+        {%- if section.settings.subtitle != blank -%}
+          <p class="pw-product__subtitle">{{ section.settings.subtitle }}</p>
+        {%- endif -%}
+      </div>
+
+      <div class="pw-product__price" data-product-price>
+        {% render 'price', product: product, variant: current_variant %}
+      </div>
+
+      {%- if section.settings.description_source == 'product' and product.description != blank -%}
+        <div class="pw-product__desc rte">{{ product.description }}</div>
+      {%- elsif section.settings.description != blank -%}
+        <p class="pw-product__desc">{{ section.settings.description }}</p>
+      {%- endif -%}
+
+      {%- assign benefit_blocks = section.blocks | where: 'type', 'benefit' -%}
+      {%- if benefit_blocks.size > 0 -%}
+        <ul class="pw-checklist pw-checklist--compact">
+          {%- for block in benefit_blocks -%}
+            <li class="pw-checklist__item" {{ block.shopify_attributes }}>
+              <span class="pw-checklist__mark">{% render 'icon', name: 'check', size: 14, stroke: 2.8 %}</span>
+              <span class="pw-checklist__text">{{ block.settings.text }}</span>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+
+      <product-form class="pw-buy" data-max="{{ max_qty }}" data-form-id="{{ form_id }}">
+        {%- form 'product', product, id: form_id, class: 'pw-buy__form', novalidate: 'novalidate' -%}
+          {%- if has_variants -%}
+            <div class="pw-field">
+              <label class="pw-field__label" for="Variant-{{ section.id }}">{{ product.options_with_values.first.name | default: 'Option' }}</label>
+              <select id="Variant-{{ section.id }}" class="pw-select" name="id" data-variant-select>
+                {%- for variant in product.variants -%}
+                  <option value="{{ variant.id }}"{% if variant == current_variant %} selected{% endif %}{% unless variant.available %} disabled{% endunless %}>
+                    {{- variant.title -}}
+                    {%- unless variant.available %} — {{ 'product.sold_out' | t }}{% endunless -%}
+                  </option>
+                {%- endfor -%}
+              </select>
+            </div>
+          {%- else -%}
+            <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
+          {%- endif -%}
+
+          <label class="pw-buy__label" for="{{ qty_id }}">{{ 'product.quantity' | t }}</label>
+          <div class="pw-buy__row">
+            <div class="pw-qty">
+              <button type="button" class="pw-qty__btn" data-qty-minus aria-label="{{ 'accessibility.decrease_quantity' | t }}">
+                {% render 'icon', name: 'minus', size: 18, stroke: 2.2 %}
+              </button>
+              <input
+                id="{{ qty_id }}"
+                class="pw-qty__input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                name="quantity"
+                value="1"
+                data-qty-input
+                autocomplete="off"
+              >
+              <button type="button" class="pw-qty__btn" data-qty-plus aria-label="{{ 'accessibility.increase_quantity' | t }}">
+                {% render 'icon', name: 'plus', size: 18, stroke: 2.2 %}
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              name="add"
+              class="pw-btn pw-btn--primary pw-buy__submit"
+              data-add-to-cart
+              {% unless current_variant.available %}disabled{% endunless %}
+            >
+              {% render 'icon', name: 'bag', size: 20, stroke: 2, class: 'pw-buy__bag' %}
+              <span data-add-label>
+                {%- if current_variant.available -%}
+                  {{ 'product.add_to_cart' | t }}
+                {%- else -%}
+                  {{ 'product.sold_out' | t }}
+                {%- endif -%}
+              </span>
+            </button>
+          </div>
+          <p class="pw-buy__error" role="alert" data-form-error hidden></p>
+        {%- endform -%}
+
+        {%- if has_variants -%}
+          <script type="application/json" data-variants-json>
+            [
+              {%- for variant in product.variants -%}
+                {
+                  "id": {{ variant.id }},
+                  "available": {{ variant.available | json }},
+                  "price": {{ variant.price | json }},
+                  "priceFormatted": {% if settings.show_currency_code %}{{ variant.price | money_with_currency | json }}{% else %}{{ variant.price | money | json }}{% endif %},
+                  "compareFormatted": {% if settings.show_compare_at_price and variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money | json }}{% else %}""{% endif %},
+                  "mediaId": {{ variant.featured_media.id | json }},
+                  "max": {% if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny' and variant.inventory_quantity > 0 and variant.inventory_quantity < settings.max_quantity %}{{ variant.inventory_quantity }}{% else %}{{ settings.max_quantity }}{% endif %}
+                }{% unless forloop.last %},{% endunless %}
+              {%- endfor -%}
+            ]
+          </script>
+        {%- endif -%}
+      </product-form>
+
+      {%- assign info_blocks = section.blocks | where: 'type', 'info_row' -%}
+      {%- if info_blocks.size > 0 -%}
+        <div class="pw-inforows">
+          {%- for block in info_blocks -%}
+            <div class="pw-inforow" {{ block.shopify_attributes }}>
+              {% render 'icon', name: block.settings.icon, size: 22, stroke: 1.8, class: 'pw-inforow__icon' %}
+              <div class="pw-inforow__body">
+                <span class="pw-inforow__title">{{ block.settings.title }}</span>
+                {%- if block.settings.text != blank -%}
+                  <span class="pw-inforow__text">
+                    {%- if block.settings.link != blank -%}
+                      <a href="{{ block.settings.link }}">{{ block.settings.text }}</a>
+                    {%- else -%}
+                      {{ block.settings.text }}
+                    {%- endif -%}
+                  </span>
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.note != blank -%}
+        <p class="pw-product__note">{{ section.settings.note }}</p>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+{% schema %}
+{
+  "name": "Product",
+  "tag": "div",
+  "settings": [
+    { "type": "checkbox", "id": "show_breadcrumb", "label": "Show breadcrumb", "default": true },
+    { "type": "header", "content": "Gallery" },
+    {
+      "type": "checkbox",
+      "id": "autoplay_videos",
+      "label": "Play product videos automatically",
+      "default": true,
+      "info": "Videos play muted and loop, with a play / pause button. They stay paused for shoppers who prefer reduced motion."
+    },
+    { "type": "header", "content": "Text" },
+    {
+      "type": "text",
+      "id": "subtitle",
+      "label": "Line under the title",
+      "default": "Steam mist brush · For dogs & cats · Short or long hair"
+    },
+    {
+      "type": "select",
+      "id": "description_source",
+      "label": "Description",
+      "options": [
+        { "value": "text", "label": "Use the short text below" },
+        { "value": "product", "label": "Use the product description from Shopify" }
+      ],
+      "default": "text"
+    },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "Short description",
+      "default": "A deshedding brush with a built-in steam mist and a self-cleaning design. Rated IPX7 waterproof and described as skin friendly, it's made for dogs and cats with short or long hair."
+    },
+    {
+      "type": "text",
+      "id": "note",
+      "label": "Note under the policy box",
+      "default": "In the box: 1 brush, 1 shampoo.",
+      "info": "Confirm what is really in the box before you launch. Leave empty to hide."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Check-list item",
+      "limit": 6,
+      "settings": [
+        { "type": "text", "id": "text", "label": "Text", "default": "Helps remove loose fur from short and long coats" }
+      ]
+    },
+    {
+      "type": "info_row",
+      "name": "Info row",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "truck", "label": "Delivery" },
+            { "value": "return", "label": "Returns" },
+            { "value": "support", "label": "Support" },
+            { "value": "check", "label": "Check mark" }
+          ],
+          "default": "truck"
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Shipping" },
+        { "type": "text", "id": "text", "label": "Text", "default": "See our shipping policy for delivery times." },
+        { "type": "url", "id": "link", "label": "Link" }
+      ]
+    }
+  ]
+}
+{% endschema %}

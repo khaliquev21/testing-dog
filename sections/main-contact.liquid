@@ -1,0 +1,46 @@
+<section class="pw-page" data-section-id="{{ section.id }}">
+  <div class="pw-page__inner pw-container pw-container--narrow">
+    <h1 class="pw-page__title">{{ page.title }}</h1>
+    {%- if page.content != blank -%}
+      <div class="pw-page__content rte">
+        {{ page.content }}
+      </div>
+    {%- endif -%}
+
+    {%- form 'contact', id: 'ContactForm', class: 'pw-contact' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="pw-contact__success" role="status">{{ 'contact.success' | t }}</p>
+      {%- endif -%}
+      {%- if form.errors -%}
+        <div class="pw-contact__errors" role="alert">
+          {{ form.errors | default_errors }}
+        </div>
+      {%- endif -%}
+
+      <div class="pw-field">
+        <label class="pw-field__label" for="ContactName">{{ 'contact.name' | t }}</label>
+        <input class="pw-input" id="ContactName" type="text" name="contact[name]" autocomplete="name" value="{{ form.name }}">
+      </div>
+      <div class="pw-field">
+        <label class="pw-field__label" for="ContactEmail">{{ 'contact.email' | t }}</label>
+        <input class="pw-input" id="ContactEmail" type="email" name="contact[email]" autocomplete="email" required value="{{ form.email }}">
+      </div>
+      <div class="pw-field">
+        <label class="pw-field__label" for="ContactPhone">{{ 'contact.phone' | t }}</label>
+        <input class="pw-input" id="ContactPhone" type="tel" name="contact[phone]" autocomplete="tel" value="{{ form.phone }}">
+      </div>
+      <div class="pw-field">
+        <label class="pw-field__label" for="ContactBody">{{ 'contact.message' | t }}</label>
+        <textarea class="pw-input pw-input--area" id="ContactBody" name="contact[body]" rows="6" required>{{ form.body }}</textarea>
+      </div>
+      <button type="submit" class="pw-btn pw-btn--primary pw-btn--lg">{{ 'contact.send' | t }}</button>
+    {%- endform -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Contact form",
+  "settings": []
+}
+{% endschema %}

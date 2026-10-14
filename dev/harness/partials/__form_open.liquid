@@ -1,0 +1,11 @@
+{%- liquid
+  assign action = '/cart/add'
+  if type == 'contact'
+    assign action = '/contact#ContactForm'
+  elsif type == 'storefront_password'
+    assign action = '/password'
+  endif
+-%}
+<form method="post" action="{{ action }}" id="{{ id }}" class="{{ class }}" accept-charset="UTF-8" enctype="multipart/form-data"{% if novalidate %} novalidate="{{ novalidate }}"{% endif %}>
+<input type="hidden" name="form_type" value="{{ type }}"><input type="hidden" name="utf8" value="✓">
+{%- if type == 'product' %}<input type="hidden" name="product-id" value="{{ object.id }}">{% endif -%}

@@ -1,0 +1,7 @@
+node_modules/
+fixtures/
+shots/
+server.log
+server.pid
+test-results.json
+package-lock.json

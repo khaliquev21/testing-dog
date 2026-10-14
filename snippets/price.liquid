@@ -1,0 +1,25 @@
+{%- comment -%}
+  Renders the selling price straight from Shopify product data. Nothing is hardcoded.
+
+  Accepts:
+  - product: product object
+  - variant: variant object (optional, defaults to the selected or first available variant)
+  - class: extra class names
+{%- endcomment -%}
+{%- liquid
+  assign price_variant = variant | default: product.selected_or_first_available_variant
+  assign price_value = price_variant.price
+  assign compare_value = price_variant.compare_at_price
+-%}
+<span class="pw-price {{ class }}" data-price-wrapper>
+  <span class="pw-price__current" data-price>
+    {%- if settings.show_currency_code -%}
+      {{- price_value | money_with_currency -}}
+    {%- else -%}
+      {{- price_value | money -}}
+    {%- endif -%}
+  </span>
+  {%- if settings.show_compare_at_price and compare_value > price_value -%}
+    <s class="pw-price__compare" data-compare-price>{{ compare_value | money }}</s>
+  {%- endif -%}
+</span>

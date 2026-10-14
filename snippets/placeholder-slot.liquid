@@ -1,0 +1,31 @@
+{%- comment -%}
+  Upload reminder shown ONLY inside the theme editor (request.design_mode).
+  Shoppers never see this. It marks where your genuine product photo or footage goes.
+
+  Accepts:
+  - kind: 'photo' (default) or 'video'
+  - tag: slot label, e.g. "PHOTO 01"
+  - title: what belongs in the slot
+  - hint: extra guidance (optional)
+  - dark: true for the charcoal variant used on dark sections
+{%- endcomment -%}
+{%- liquid
+  assign slot_kind = kind | default: 'photo'
+  assign slot_class = 'pw-ph pw-ph--' | append: slot_kind
+  if dark
+    assign slot_class = slot_class | append: ' pw-ph--dark'
+  endif
+-%}
+<div class="{{ slot_class }}">
+  {%- if slot_kind == 'video' -%}
+    <span class="pw-ph__play">{% render 'icon', name: 'play', size: 26 %}</span>
+    <div class="pw-ph__tag">{{ tag }} · REAL FOOTAGE REQUIRED</div>
+  {%- else -%}
+    {% render 'icon', name: 'camera', size: 36, stroke: 1.6 %}
+    <div class="pw-ph__tag">{{ tag }} · REAL PRODUCT PHOTO</div>
+  {%- endif -%}
+  <div class="pw-ph__title">{{ title }}</div>
+  {%- if hint != blank -%}
+    <div class="pw-ph__hint">{{ hint }}</div>
+  {%- endif -%}
+</div>

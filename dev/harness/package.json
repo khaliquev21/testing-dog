@@ -1,0 +1,25 @@
+{
+  "name": "pawora-theme-harness",
+  "private": true,
+  "description": "Local mock-Shopify harness used to test the Pawora theme. Not part of the theme and never uploaded to Shopify.",
+  "scripts": {
+    "fixtures": "sh make-fixtures.sh",
+    "serve": "node server.js",
+    "lint": "node lint.js ../..",
+    "test": "node tests.js",
+    "audit": "node audit.js",
+    "extra": "node extra-checks.js",
+    "shots": "node shoot.js && node shoot-states.js",
+    "sweep": "node sweep.js"
+  },
+  "dependencies": {
+    "@shopify/theme-check-node": "^3.0.0",
+    "axe-core": "^4.10.0",
+    "busboy": "^1.6.0",
+    "liquidjs": "^10.0.0",
+    "playwright-core": "^1.50.0"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

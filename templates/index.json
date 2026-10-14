@@ -1,0 +1,62 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "blocks": {
+        "trust_1": { "type": "trust", "settings": { "text": "Self-cleaning" } },
+        "trust_2": { "type": "trust", "settings": { "text": "IPX7 waterproof" } },
+        "trust_3": { "type": "trust", "settings": { "text": "Includes 1 shampoo" } }
+      },
+      "block_order": ["trust_1", "trust_2", "trust_3"],
+      "settings": {}
+    },
+    "benefits": {
+      "type": "benefits",
+      "blocks": {
+        "benefit_1": {
+          "type": "benefit",
+          "settings": { "icon": "fur", "title": "Helps Remove Loose Fur", "text": "Made for shedding and deshedding sessions on short or long coats." }
+        },
+        "benefit_2": {
+          "type": "benefit",
+          "settings": { "icon": "refresh", "title": "Self-Cleaning Design", "text": "Built so clearing collected fur from the brush is quick and simple." }
+        },
+        "benefit_3": {
+          "type": "benefit",
+          "settings": { "icon": "mist", "title": "Steam Mist Brushing", "text": "A built-in mist function on a brush designed to be gentle on skin." }
+        },
+        "benefit_4": {
+          "type": "benefit",
+          "settings": { "icon": "drop", "title": "IPX7 Waterproof", "text": "Rated IPX7 waterproof, so a little water is never a worry." }
+        }
+      },
+      "block_order": ["benefit_1", "benefit_2", "benefit_3", "benefit_4"],
+      "settings": {}
+    },
+    "demo": {
+      "type": "video-showcase",
+      "settings": {}
+    },
+    "intro": {
+      "type": "intro",
+      "blocks": {
+        "point_1": { "type": "point", "settings": { "strong": "Helps remove loose fur", "text": "from short and long coats during shedding season." } },
+        "point_2": { "type": "point", "settings": { "strong": "Self-cleaning design", "text": "for quicker clean-up after every session." } },
+        "point_3": { "type": "point", "settings": { "strong": "IPX7 waterproof", "text": "and described as skin friendly." } }
+      },
+      "block_order": ["point_1", "point_2", "point_3"],
+      "settings": {}
+    },
+    "reviews": {
+      "type": "reviews",
+      "settings": {
+        "layout": "wide"
+      }
+    },
+    "final_cta": {
+      "type": "final-cta",
+      "settings": {}
+    }
+  },
+  "order": ["hero", "benefits", "demo", "intro", "reviews", "final_cta"]
+}

@@ -1,0 +1,90 @@
+<cart-drawer class="pw-drawer{% if cart.item_count == 0 %} is-empty{% endif %}" id="CartDrawer" data-cart-count="{{ cart.item_count }}" aria-hidden="true">
+  <div class="pw-drawer__overlay" data-drawer-close></div>
+  <div class="pw-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="CartDrawerTitle" tabindex="-1">
+    <div class="pw-drawer__head">
+      <h2 class="pw-drawer__title" id="CartDrawerTitle">
+        {{ 'cart.title' | t }}
+        {%- if cart.item_count > 0 %} <span class="pw-drawer__count">({{ cart.item_count }})</span>{% endif -%}
+      </h2>
+      <button type="button" class="pw-iconbtn" data-drawer-close aria-label="{{ 'general.close' | t }}">
+        {% render 'icon', name: 'close', size: 22 %}
+      </button>
+    </div>
+
+    <div class="pw-drawer__body" data-drawer-body>
+      {%- if cart.item_count == 0 -%}
+        <div class="pw-drawer__empty">
+          {% render 'icon', name: 'bag', size: 40, stroke: 1.5, class: 'pw-drawer__empty-icon' %}
+          <p class="pw-drawer__empty-title">{{ 'cart.empty' | t }}</p>
+          <p class="pw-drawer__empty-text">{{ 'cart.empty_text' | t }}</p>
+          {%- assign first_product = collections.all.products.first -%}
+          <a class="pw-btn pw-btn--primary" href="{% if first_product != blank %}{{ first_product.url }}{% else %}{{ routes.all_products_collection_url }}{% endif %}">
+            {{ 'cart.continue_shopping' | t }}
+          </a>
+        </div>
+      {%- else -%}
+        <ul class="pw-lines">
+          {%- for item in cart.items -%}
+            <li class="pw-line" data-line="{{ forloop.index }}" data-key="{{ item.key }}">
+              <a class="pw-line__image" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+                {%- if item.image != blank -%}
+                  {{
+                    item.image
+                    | image_url: width: 192
+                    | image_tag: width: 96, height: 96, loading: 'lazy', alt: item.image.alt | default: item.product.title, class: 'pw-line__img'
+                  }}
+                {%- else -%}
+                  {% render 'icon', name: 'paw', size: 32 %}
+                {%- endif -%}
+              </a>
+              <div class="pw-line__body">
+                <a class="pw-line__title" href="{{ item.url }}">{{ item.product.title }}</a>
+                {%- unless item.product.has_only_default_variant -%}
+                  <span class="pw-line__variant">{{ item.variant.title }}</span>
+                {%- endunless -%}
+                <span class="pw-line__price">{{ item.final_price | money }}</span>
+                <div class="pw-line__controls">
+                  <div class="pw-qty pw-qty--sm">
+                    <button type="button" class="pw-qty__btn" data-line-minus aria-label="{{ 'accessibility.decrease_quantity' | t }}">
+                      {% render 'icon', name: 'minus', size: 14, stroke: 2.2 %}
+                    </button>
+                    <input class="pw-qty__input" type="text" inputmode="numeric" pattern="[0-9]*" value="{{ item.quantity }}" data-line-input aria-label="{{ 'cart.quantity' | t }}" autocomplete="off">
+                    <button type="button" class="pw-qty__btn" data-line-plus aria-label="{{ 'accessibility.increase_quantity' | t }}">
+                      {% render 'icon', name: 'plus', size: 14, stroke: 2.2 %}
+                    </button>
+                  </div>
+                  <button type="button" class="pw-line__remove" data-line-remove aria-label="{{ 'accessibility.remove_item' | t: title: item.product.title }}">
+                    {{ 'cart.remove' | t }}
+                  </button>
+                </div>
+              </div>
+              <div class="pw-line__total">{{ item.final_line_price | money }}</div>
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </div>
+
+    {%- if cart.item_count > 0 -%}
+      <div class="pw-drawer__foot">
+        <div class="pw-drawer__subtotal">
+          <span>{{ 'cart.subtotal' | t }}</span>
+          <span class="pw-drawer__subtotal-amount">{{ cart.total_price | money }}</span>
+        </div>
+        <p class="pw-drawer__note">{{ 'cart.taxes_shipping_at_checkout' | t }}</p>
+        <p class="pw-drawer__error" data-cart-error role="alert" hidden></p>
+        <form action="{{ routes.cart_url }}" method="post">
+          <button type="submit" name="checkout" class="pw-btn pw-btn--primary pw-btn--lg pw-btn--full">{{ 'cart.checkout' | t }}</button>
+        </form>
+        <a class="pw-drawer__viewcart" href="{{ routes.cart_url }}">{{ 'cart.view_cart' | t }}</a>
+      </div>
+    {%- endif -%}
+  </div>
+</cart-drawer>
+
+{% schema %}
+{
+  "name": "Cart drawer",
+  "settings": []
+}
+{% endschema %}

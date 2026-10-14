@@ -1,0 +1,175 @@
+{%- liquid
+  assign hero_product = section.settings.product
+  if hero_product == blank
+    assign hero_product = collections.all.products.first
+  endif
+  assign cta_url = section.settings.button_link
+  if cta_url == blank
+    if hero_product != blank
+      assign cta_url = hero_product.url
+    else
+      assign cta_url = routes.all_products_collection_url
+    endif
+  endif
+  assign has_media = false
+  if section.settings.image != blank
+    assign has_media = true
+  endif
+  assign show_media = false
+  if has_media or request.design_mode
+    assign show_media = true
+  endif
+-%}
+<section class="pw-hero{% unless show_media %} pw-hero--no-media{% endunless %}" data-section-id="{{ section.id }}">
+  <div class="pw-hero__inner pw-container">
+    <div class="pw-hero__copy">
+      {%- if section.settings.badge != blank -%}
+        <span class="pw-badge"><span class="pw-badge__dot"></span>{{ section.settings.badge }}</span>
+      {%- endif -%}
+
+      <h1 class="pw-hero__title">
+        {{- section.settings.heading_top -}}
+        {%- if section.settings.heading_bottom != blank or section.settings.heading_highlight != blank -%}
+          <br>
+          {{- section.settings.heading_bottom }}
+          {% if section.settings.heading_highlight != blank %}<span class="pw-highlight">{{ section.settings.heading_highlight }}</span>{% endif %}
+        {%- endif -%}
+      </h1>
+
+      {%- if section.settings.text != blank -%}
+        <p class="pw-hero__text">{{ section.settings.text }}</p>
+      {%- endif -%}
+
+      <div class="pw-hero__actions">
+        <a class="pw-btn pw-btn--primary pw-btn--lg" href="{{ cta_url }}">
+          {{- section.settings.button_label -}}
+          {%- if section.settings.show_price and hero_product != blank -%}
+            <span class="pw-btn__price">{% render 'price', product: hero_product %}</span>
+          {%- endif -%}
+          {% render 'icon', name: 'arrow-right', size: 18, stroke: 2.2 %}
+        </a>
+        {%- if section.settings.secondary_label != blank -%}
+          <a class="pw-btn pw-btn--outline pw-btn--lg pw-hero__secondary" href="#{{ section.settings.secondary_anchor | default: 'demo' }}">
+            {% render 'icon', name: 'play-circle', size: 18, stroke: 2 %}
+            {{- section.settings.secondary_label -}}
+          </a>
+        {%- endif -%}
+      </div>
+
+      {%- if section.blocks.size > 0 -%}
+        <ul class="pw-hero__trust">
+          {%- for block in section.blocks -%}
+            <li class="pw-hero__trust-item" {{ block.shopify_attributes }}>
+              {% render 'icon', name: 'check', size: 16, stroke: 2.6 %}
+              {{- block.settings.text -}}
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
+    </div>
+
+    <div class="pw-hero__media">
+      {%- if show_media -%}
+        <div class="pw-hero__panel">
+          <div class="pw-hero__frame">
+            {% render 'media-slot',
+              image: section.settings.image,
+              label: section.settings.image_alt,
+              fit: section.settings.image_fit,
+              loading: 'eager',
+              sizes: '(min-width: 990px) 560px, 100vw',
+              ph_tag: 'PHOTO 01',
+              ph_title: 'Main product image: the brush on white',
+              ph_hint: 'Upload your genuine main product photo. Shown large on a warm background.'
+            %}
+          </div>
+          {%- if section.settings.card_title != blank -%}
+            <div class="pw-hero__card">
+              <span class="pw-hero__card-icon">{% render 'icon', name: 'paw', size: 22 %}</span>
+              <span class="pw-hero__card-text">
+                <strong>{{ section.settings.card_title }}</strong>
+                {%- if section.settings.card_text != blank -%}
+                  <span>{{ section.settings.card_text }}</span>
+                {%- endif -%}
+              </span>
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "tag": "div",
+  "settings": [
+    { "type": "header", "content": "Text" },
+    { "type": "text", "id": "badge", "label": "Badge", "default": "Steam mist brush for dogs & cats" },
+    { "type": "text", "id": "heading_top", "label": "Heading, first line", "default": "Less Shedding." },
+    { "type": "text", "id": "heading_bottom", "label": "Heading, second line", "default": "More" },
+    { "type": "text", "id": "heading_highlight", "label": "Highlighted word", "default": "Cuddles." },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Text",
+      "default": "Make grooming easier with a brush designed to help remove loose fur and keep your pet's coat looking its best."
+    },
+    { "type": "header", "content": "Buttons" },
+    { "type": "text", "id": "button_label", "label": "Button label", "default": "Shop the Brush" },
+    { "type": "url", "id": "button_link", "label": "Button link", "info": "Leave empty to link to the featured product." },
+    { "type": "product", "id": "product", "label": "Featured product", "info": "Leave empty to use your first product." },
+    {
+      "type": "checkbox",
+      "id": "show_price",
+      "label": "Show the product price inside the button",
+      "default": true,
+      "info": "Read live from the Shopify product."
+    },
+    { "type": "text", "id": "secondary_label", "label": "Second button label", "default": "See it in action", "info": "Scrolls to the demo section. Leave empty to hide." },
+    { "type": "text", "id": "secondary_anchor", "label": "Second button target (section ID)", "default": "demo" },
+    { "type": "header", "content": "Product photo" },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Main product photo",
+      "info": "Use your genuine product photo. Nothing is shown here until you upload one."
+    },
+    { "type": "text", "id": "image_alt", "label": "Photo description (alt text)", "default": "Pawora self-cleaning pet grooming brush" },
+    {
+      "type": "select",
+      "id": "image_fit",
+      "label": "Photo fit",
+      "options": [
+        { "value": "contain", "label": "Show the whole photo" },
+        { "value": "cover", "label": "Fill the frame" }
+      ],
+      "default": "contain"
+    },
+    { "type": "header", "content": "Floating card" },
+    { "type": "text", "id": "card_title", "label": "Card title", "default": "For dogs & cats" },
+    { "type": "text", "id": "card_text", "label": "Card text", "default": "Short or long hair" }
+  ],
+  "blocks": [
+    {
+      "type": "trust",
+      "name": "Trust point",
+      "limit": 4,
+      "settings": [
+        { "type": "text", "id": "text", "label": "Text", "default": "Self-cleaning" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Hero",
+      "blocks": [
+        { "type": "trust", "settings": { "text": "Self-cleaning" } },
+        { "type": "trust", "settings": { "text": "IPX7 waterproof" } },
+        { "type": "trust", "settings": { "text": "Includes 1 shampoo" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

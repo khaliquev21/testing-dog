@@ -1,0 +1,49 @@
+{%- comment -%}
+  One place that decides what goes in a media slot. Order of preference:
+  1. a looping video (Shopify-hosted video, or a direct MP4/WebM link)
+  2. a still image
+  3. inside the theme editor only: a dashed upload reminder
+  4. otherwise: nothing at all (no placeholders for shoppers, nothing invented)
+
+  Accepts:
+  - image: image object (also used as the video poster)
+  - video / video_url: see loop-video
+  - label: accessible description / alt text fallback
+  - fit: 'cover' (default) or 'contain'
+  - sizes / widths: responsive image hints
+  - loading: 'lazy' (default) or 'eager'
+  - video_size: 'lg' or 'sm' play button
+  - ph_kind / ph_tag / ph_title / ph_hint / ph_dark: editor-only upload reminder (see placeholder-slot)
+{%- endcomment -%}
+{%- liquid
+  assign slot_fit = fit | default: 'cover'
+  assign slot_widths = widths | default: '400, 600, 800, 1200, 1600'
+  assign slot_sizes = sizes | default: '(min-width: 990px) 50vw, 100vw'
+  assign slot_loading = loading | default: 'lazy'
+-%}
+{%- if video != blank or video_url != blank -%}
+  {% render 'loop-video',
+    video: video,
+    video_url: video_url,
+    poster: image,
+    label: label,
+    size: video_size,
+    class: 'pw-media__fill'
+  %}
+{%- elsif image != blank -%}
+  {%- assign slot_alt = image.alt | default: label -%}
+  {%- assign slot_img_class = 'pw-media__img pw-fit--' | append: slot_fit -%}
+  {{
+    image
+    | image_url: width: 1600
+    | image_tag: widths: slot_widths, sizes: slot_sizes, loading: slot_loading, alt: slot_alt, class: slot_img_class
+  }}
+{%- elsif request.design_mode -%}
+  {% render 'placeholder-slot',
+    kind: ph_kind,
+    tag: ph_tag,
+    title: ph_title,
+    hint: ph_hint,
+    dark: ph_dark
+  %}
+{%- endif -%}

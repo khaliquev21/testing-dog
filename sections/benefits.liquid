@@ -1,0 +1,56 @@
+<section class="pw-benefits" id="why" data-section-id="{{ section.id }}">
+  <div class="pw-benefits__grid pw-container">
+    {%- for block in section.blocks -%}
+      <div class="pw-benefit" {{ block.shopify_attributes }}>
+        <span class="pw-benefit__icon">{% render 'icon', name: block.settings.icon, size: 26, stroke: 1.8 %}</span>
+        <h3 class="pw-benefit__title">{{ block.settings.title }}</h3>
+        {%- if block.settings.text != blank -%}
+          <p class="pw-benefit__text">{{ block.settings.text }}</p>
+        {%- endif -%}
+      </div>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Benefits bar",
+  "tag": "div",
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "Benefit",
+      "limit": 6,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "fur", "label": "Brush bristles" },
+            { "value": "refresh", "label": "Self-cleaning arrows" },
+            { "value": "mist", "label": "Mist" },
+            { "value": "drop", "label": "Water drop" },
+            { "value": "check", "label": "Check mark" },
+            { "value": "paw", "label": "Paw" }
+          ],
+          "default": "fur"
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Helps Remove Loose Fur" },
+        { "type": "textarea", "id": "text", "label": "Text", "default": "Made for shedding and deshedding sessions on short or long coats." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Benefits bar",
+      "blocks": [
+        { "type": "benefit", "settings": { "icon": "fur", "title": "Helps Remove Loose Fur", "text": "Made for shedding and deshedding sessions on short or long coats." } },
+        { "type": "benefit", "settings": { "icon": "refresh", "title": "Self-Cleaning Design", "text": "Built so clearing collected fur from the brush is quick and simple." } },
+        { "type": "benefit", "settings": { "icon": "mist", "title": "Steam Mist Brushing", "text": "A built-in mist function on a brush designed to be gentle on skin." } },
+        { "type": "benefit", "settings": { "icon": "drop", "title": "IPX7 Waterproof", "text": "Rated IPX7 waterproof, so a little water is never a worry." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

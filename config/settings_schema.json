@@ -1,0 +1,99 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Pawora",
+    "theme_version": "1.0.0",
+    "theme_author": "Pawora",
+    "theme_documentation_url": "https://github.com/khaliquev21/testing-dog",
+    "theme_support_url": "https://github.com/khaliquev21/testing-dog/issues"
+  },
+  {
+    "name": "Brand",
+    "settings": [
+      {
+        "type": "text",
+        "id": "brand_name",
+        "label": "Brand name",
+        "default": "Pawora",
+        "info": "Shown beside the logo mark, above the product title and in the footer."
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "Square image, at least 32 x 32 px."
+      }
+    ]
+  },
+  {
+    "name": "Buttons",
+    "settings": [
+      {
+        "type": "select",
+        "id": "button_text_color",
+        "label": "Text color on orange buttons",
+        "options": [
+          {
+            "value": "#202020",
+            "label": "Charcoal"
+          },
+          {
+            "value": "#FFFFFF",
+            "label": "White"
+          }
+        ],
+        "default": "#202020",
+        "info": "Charcoal has the stronger contrast on the burnt orange."
+      }
+    ]
+  },
+  {
+    "name": "Product & pricing",
+    "settings": [
+      {
+        "type": "range",
+        "id": "max_quantity",
+        "label": "Maximum quantity per add to cart",
+        "min": 1,
+        "max": 20,
+        "step": 1,
+        "default": 10
+      },
+      {
+        "type": "checkbox",
+        "id": "show_currency_code",
+        "label": "Show the currency code after prices",
+        "default": false,
+        "info": "Prices always come from the Shopify product. Turn this on to add the currency code (for example USD) after the amount."
+      },
+      {
+        "type": "checkbox",
+        "id": "show_compare_at_price",
+        "label": "Show compare-at price when one is set on the product",
+        "default": false,
+        "info": "Off by default so the product shows a single, standard selling price."
+      }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart style",
+        "options": [
+          {
+            "value": "drawer",
+            "label": "Slide-out drawer"
+          },
+          {
+            "value": "page",
+            "label": "Cart page"
+          }
+        ],
+        "default": "drawer"
+      }
+    ]
+  }
+]

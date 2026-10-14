@@ -1,0 +1,10 @@
+# Shopify theme-check configuration
+root: .
+ignore:
+  - dev/**
+  - docs/**
+  - scripts/**
+  - dist/**
+# Fonts are preloaded with plain <link rel="preload"> tags so the crossorigin attribute stays explicit.
+AssetPreload:
+  enabled: false

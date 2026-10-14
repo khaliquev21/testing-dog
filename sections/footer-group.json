@@ -1,0 +1,49 @@
+{
+  "name": "Footer",
+  "type": "footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "col_shop": {
+          "type": "column",
+          "settings": {
+            "heading": "Shop",
+            "link_1_label": "Shop",
+            "link_2_label": "The Brush"
+          }
+        },
+        "col_help": {
+          "type": "column",
+          "settings": {
+            "heading": "Help",
+            "link_1_label": "Contact",
+            "link_1_url": "/pages/contact",
+            "link_2_label": "Shipping",
+            "link_2_url": "/policies/shipping-policy",
+            "link_3_label": "Returns",
+            "link_3_url": "/policies/refund-policy",
+            "link_4_label": "FAQ",
+            "link_4_url": "#faq"
+          }
+        },
+        "col_legal": {
+          "type": "column",
+          "settings": {
+            "heading": "Legal",
+            "link_1_label": "Privacy Policy",
+            "link_1_url": "/policies/privacy-policy",
+            "link_2_label": "Terms",
+            "link_2_url": "/policies/terms-of-service"
+          }
+        }
+      },
+      "block_order": ["col_shop", "col_help", "col_legal"],
+      "settings": {
+        "tagline": "Simple, thoughtful grooming tools for dogs and cats.",
+        "support_email": ""
+      }
+    }
+  },
+  "order": ["footer"]
+}

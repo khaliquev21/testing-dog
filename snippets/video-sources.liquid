@@ -1,0 +1,31 @@
+{%- comment -%}
+  Outputs one <source> for a Shopify-hosted video: the largest MP4 rendition that
+  is not taller than max_height (falls back to the smallest MP4 if every rendition is taller).
+
+  Accepts:
+  - video: Shopify video object (a "video" theme setting or a product media item of type video)
+  - max_height: maximum rendition height in pixels (default 1080)
+{%- endcomment -%}
+{%- liquid
+  assign limit_height = max_height | default: 1080
+  assign chosen = nil
+  assign chosen_height = 0
+  assign fallback = nil
+  for source in video.sources
+    if source.format == 'mp4'
+      if source.height <= limit_height and source.height > chosen_height
+        assign chosen = source
+        assign chosen_height = source.height
+      endif
+      if fallback == nil or source.height < fallback.height
+        assign fallback = source
+      endif
+    endif
+  endfor
+  unless chosen
+    assign chosen = fallback
+  endunless
+-%}
+{%- if chosen -%}
+  <source src="{{ chosen.url }}" type="{{ chosen.mime_type | default: 'video/mp4' }}">
+{%- endif -%}

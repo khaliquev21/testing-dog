@@ -1,0 +1,105 @@
+{%- liquid
+  assign brand = settings.brand_name | default: shop.name
+  assign shop_url = section.settings.shop_link
+  if shop_url == blank
+    assign first_product = collections.all.products.first
+    if first_product != blank
+      assign shop_url = first_product.url
+    else
+      assign shop_url = routes.all_products_collection_url
+    endif
+  endif
+  assign on_product = false
+  if request.page_type == 'product'
+    assign on_product = true
+  endif
+  assign root = routes.root_url
+-%}
+
+{%- capture nav_links -%}
+  {%- if section.settings.menu != blank and section.settings.menu.links.size > 0 -%}
+    {%- for link in section.settings.menu.links -%}
+      <a class="pw-nav__link{% if link.active or link.child_active %} is-active{% endif %}" href="{{ link.url }}"{% if link.active %} aria-current="page"{% endif %}>{{ link.title }}</a>
+    {%- endfor -%}
+  {%- else -%}
+    <a class="pw-nav__link{% if request.page_type == 'index' %} is-active{% endif %}" href="{{ root }}"{% if request.page_type == 'index' %} aria-current="page"{% endif %}>Home</a>
+    <a class="pw-nav__link{% if request.page_type == 'product' or request.page_type == 'collection' or request.page_type == 'list-collections' %} is-active{% endif %}" href="{{ shop_url }}">Shop</a>
+    <a class="pw-nav__link" href="{{ root | append: '#why' }}">Why {{ brand }}</a>
+    <a class="pw-nav__link" href="{% if on_product %}#reviews{% else %}{{ root | append: '#reviews' }}{% endif %}">Reviews</a>
+    <a class="pw-nav__link" href="{% if on_product %}#faq{% else %}{{ shop_url | append: '#faq' }}{% endif %}">FAQ</a>
+  {%- endif -%}
+{%- endcapture -%}
+
+<header class="pw-header" data-section-id="{{ section.id }}">
+  <header-nav>
+    <div class="pw-header__bar pw-container">
+      <a class="pw-logo" href="{{ root }}" aria-label="{{ brand }} {{ 'general.home' | t | downcase }}">
+        {% render 'icon', name: 'paw', size: 30, class: 'pw-logo__mark' %}
+        <span class="pw-logo__word">{{ brand }}</span>
+      </a>
+
+      <nav class="pw-nav pw-nav--desktop" aria-label="Main">
+        {{- nav_links -}}
+      </nav>
+
+      <div class="pw-header__actions">
+        {%- if section.settings.show_search -%}
+          <button type="button" class="pw-iconbtn" data-search-toggle aria-label="{{ 'general.search' | t }}" aria-expanded="false" aria-controls="HeaderSearch-{{ section.id }}">
+            {% render 'icon', name: 'search', size: 22 %}
+          </button>
+        {%- endif -%}
+
+        <a class="pw-iconbtn pw-cart-link" href="{{ routes.cart_url }}" data-cart-open aria-label="{{ 'accessibility.cart_count' | t: count: cart.item_count }}">
+          {% render 'icon', name: 'bag', size: 22 %}
+          <span class="pw-cart-count" data-cart-count>{{ cart.item_count }}</span>
+        </a>
+
+        <button type="button" class="pw-iconbtn pw-menu-toggle" data-menu-toggle aria-label="{{ 'general.open_menu' | t }}" aria-expanded="false" aria-controls="MobileNav-{{ section.id }}" data-label-open="{{ 'general.open_menu' | t }}" data-label-close="{{ 'general.close_menu' | t }}">
+          <span class="pw-menu-toggle__open">{% render 'icon', name: 'menu', size: 22 %}</span>
+          <span class="pw-menu-toggle__close">{% render 'icon', name: 'close', size: 22 %}</span>
+        </button>
+      </div>
+    </div>
+
+    {%- if section.settings.show_search -%}
+      <div class="pw-search" id="HeaderSearch-{{ section.id }}" hidden>
+        <form class="pw-search__form pw-container" action="{{ routes.search_url }}" method="get" role="search">
+          <label class="pw-visually-hidden" for="HeaderSearchInput-{{ section.id }}">{{ 'general.search' | t }}</label>
+          <input id="HeaderSearchInput-{{ section.id }}" class="pw-search__input" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'general.search_placeholder' | t }}" autocomplete="off">
+          <input type="hidden" name="type" value="product">
+          <button class="pw-btn pw-btn--primary pw-btn--sm" type="submit">{{ 'general.search_submit' | t }}</button>
+        </form>
+      </div>
+    {%- endif -%}
+
+    <nav class="pw-nav pw-nav--mobile" id="MobileNav-{{ section.id }}" aria-label="Main" hidden>
+      {{- nav_links -}}
+    </nav>
+  </header-nav>
+</header>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu",
+      "info": "Leave empty to use the default Pawora links: Home, Shop, Why Pawora, Reviews and FAQ."
+    },
+    {
+      "type": "url",
+      "id": "shop_link",
+      "label": "Shop link",
+      "info": "Where \"Shop\" points. Leave empty to link to your first product."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_search",
+      "label": "Show search",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,75 @@
+{%- liquid
+  assign reviews_layout = section.settings.layout
+  assign has_app = false
+  for block in section.blocks
+    if block.type == '@app'
+      assign has_app = true
+    endif
+  endfor
+-%}
+<section class="pw-reviews pw-reviews--{{ reviews_layout }}" id="reviews" data-section-id="{{ section.id }}">
+  <div class="pw-reviews__inner pw-container">
+    <div class="pw-reviews__head">
+      <div class="pw-reviews__titles">
+        {%- if section.settings.eyebrow != blank -%}
+          <span class="pw-eyebrow">{{ section.settings.eyebrow }}</span>
+        {%- endif -%}
+        <h2 class="pw-reviews__heading">{{ section.settings.heading }}</h2>
+      </div>
+      {%- if section.settings.text != blank -%}
+        <p class="pw-reviews__text">{{ section.settings.text }}</p>
+      {%- endif -%}
+    </div>
+
+    {%- if has_app -%}
+      <div class="pw-reviews__app">
+        {%- for block in section.blocks -%}
+          {%- if block.type == '@app' -%}
+            {% render block %}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- elsif request.design_mode -%}
+      {%- comment -%} Editor-only reminder. Shoppers see no fake reviews, ratings or placeholder cards. {%- endcomment -%}
+      <div class="pw-reviews__slot">
+        <span class="pw-reviews__slot-tag">REVIEWS WIDGET · CONNECTS TO YOUR REVIEWS APP</span>
+        <span class="pw-skeleton"></span>
+        <span class="pw-skeleton pw-skeleton--short"></span>
+        <p class="pw-reviews__slot-hint">In the theme editor, choose "Add block" in this section and add your reviews app block. Until then, shoppers only see the text above.</p>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Reviews",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Small heading", "default": "REVIEWS" },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "What Pet Parents Say" },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Text",
+      "default": "Reviews from verified Pawora orders will appear here. No ratings are shown until real reviews come in."
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "Layout",
+      "options": [
+        { "value": "wide", "label": "Heading and text on one row (homepage)" },
+        { "value": "split", "label": "Text beside the reviews widget (product page)" }
+      ],
+      "default": "wide"
+    }
+  ],
+  "blocks": [
+    { "type": "@app" }
+  ],
+  "presets": [
+    { "name": "Reviews" }
+  ]
+}
+{% endschema %}

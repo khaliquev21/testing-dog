@@ -1,0 +1,107 @@
+{%- liquid
+  assign brand = settings.brand_name | default: shop.name
+  assign shop_url = routes.all_products_collection_url
+  assign first_product = collections.all.products.first
+  if first_product != blank
+    assign shop_url = first_product.url
+  endif
+  assign current_year = 'now' | date: '%Y'
+  assign on_product = false
+  if request.page_type == 'product'
+    assign on_product = true
+  endif
+-%}
+<footer class="pw-footer" data-section-id="{{ section.id }}">
+  <div class="pw-footer__inner pw-container">
+    <div class="pw-footer__top">
+      <div class="pw-footer__brand">
+        <span class="pw-logo pw-logo--footer">
+          {% render 'icon', name: 'paw', size: 28, class: 'pw-logo__mark' %}
+          <span class="pw-logo__word">{{ brand }}</span>
+        </span>
+        {%- if section.settings.tagline != blank -%}
+          <p class="pw-footer__tagline">{{ section.settings.tagline }}</p>
+        {%- endif -%}
+      </div>
+
+      <div class="pw-footer__links">
+        {%- for block in section.blocks -%}
+          <nav class="pw-footer__col" aria-label="{{ block.settings.heading | escape }}" {{ block.shopify_attributes }}>
+            {%- if block.settings.heading != blank -%}
+              <span class="pw-footer__heading">{{ block.settings.heading }}</span>
+            {%- endif -%}
+            {%- for i in (1..6) -%}
+              {%- liquid
+                assign label_key = 'link_' | append: i | append: '_label'
+                assign url_key = 'link_' | append: i | append: '_url'
+                assign link_label = block.settings[label_key]
+                assign link_url = block.settings[url_key]
+                if link_url == blank
+                  assign link_url = shop_url
+                elsif link_url contains '#' and link_url.size < 12 and on_product == false
+                  assign first_char = link_url | slice: 0, 1
+                  if first_char == '#'
+                    assign link_url = shop_url | append: link_url
+                  endif
+                endif
+              -%}
+              {%- if link_label != blank -%}
+                <a class="pw-footer__link" href="{{ link_url }}">{{ link_label }}</a>
+              {%- endif -%}
+            {%- endfor -%}
+          </nav>
+        {%- endfor -%}
+      </div>
+    </div>
+
+    <div class="pw-footer__bottom">
+      <span>{{ 'general.copyright' | t: year: current_year, brand: brand }}</span>
+      {%- if section.settings.support_email != blank -%}
+        <a class="pw-footer__email" href="mailto:{{ section.settings.support_email }}">{{ section.settings.support_email }}</a>
+      {%- endif -%}
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "settings": [
+    {
+      "type": "text",
+      "id": "tagline",
+      "label": "Tagline",
+      "default": "Simple, thoughtful grooming tools for dogs and cats."
+    },
+    {
+      "type": "text",
+      "id": "support_email",
+      "label": "Support email",
+      "info": "Shown at the bottom right of the footer. Leave empty to hide it."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "column",
+      "name": "Link column",
+      "limit": 4,
+      "settings": [
+        { "type": "text", "id": "heading", "label": "Heading", "default": "Shop" },
+        { "type": "header", "content": "Links", "info": "A link left without a URL points to your product. A URL that starts with # opens that part of the product page." },
+        { "type": "text", "id": "link_1_label", "label": "Link 1 label" },
+        { "type": "url", "id": "link_1_url", "label": "Link 1 URL" },
+        { "type": "text", "id": "link_2_label", "label": "Link 2 label" },
+        { "type": "url", "id": "link_2_url", "label": "Link 2 URL" },
+        { "type": "text", "id": "link_3_label", "label": "Link 3 label" },
+        { "type": "url", "id": "link_3_url", "label": "Link 3 URL" },
+        { "type": "text", "id": "link_4_label", "label": "Link 4 label" },
+        { "type": "url", "id": "link_4_url", "label": "Link 4 URL" },
+        { "type": "text", "id": "link_5_label", "label": "Link 5 label" },
+        { "type": "url", "id": "link_5_url", "label": "Link 5 URL" },
+        { "type": "text", "id": "link_6_label", "label": "Link 6 label" },
+        { "type": "url", "id": "link_6_url", "label": "Link 6 URL" }
+      ]
+    }
+  ]
+}
+{% endschema %}

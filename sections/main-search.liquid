@@ -1,0 +1,64 @@
+<section class="pw-collection pw-search-page" data-section-id="{{ section.id }}">
+  <div class="pw-collection__inner pw-container">
+    <h1 class="pw-collection__title">{{ 'search.title' | t }}</h1>
+
+    <form class="pw-search__form pw-search__form--page" action="{{ routes.search_url }}" method="get" role="search">
+      <label class="pw-visually-hidden" for="SearchPageInput">{{ 'general.search' | t }}</label>
+      <input id="SearchPageInput" class="pw-search__input" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'general.search_placeholder' | t }}">
+      <button class="pw-btn pw-btn--primary pw-btn--sm" type="submit">{{ 'general.search_submit' | t }}</button>
+    </form>
+
+    {%- if search.performed -%}
+      {%- paginate search.results by 12 -%}
+        {%- if search.results_count > 0 -%}
+          <p class="pw-lede">{{ 'search.results' | t: count: search.results_count, terms: search.terms }}</p>
+          <ul class="pw-grid">
+            {%- for item in search.results -%}
+              <li class="pw-card">
+                {%- if item.object_type == 'product' -%}
+                  <a class="pw-card__media" href="{{ item.url }}">
+                    {%- if item.featured_media != blank -%}
+                      {{
+                        item.featured_media
+                        | image_url: width: 800
+                        | image_tag: widths: '300, 500, 800', sizes: '(min-width: 990px) 25vw, 50vw', loading: 'lazy', alt: item.featured_media.alt | default: item.title, class: 'pw-media__img pw-fit--contain'
+                      }}
+                    {%- else -%}
+                      {% render 'icon', name: 'paw', size: 48, class: 'pw-card__mark' %}
+                    {%- endif -%}
+                  </a>
+                  <a class="pw-card__title" href="{{ item.url }}">{{ item.title }}</a>
+                  {% render 'price', product: item, class: 'pw-card__price' %}
+                {%- else -%}
+                  <a class="pw-card__title" href="{{ item.url }}">{{ item.title }}</a>
+                {%- endif -%}
+              </li>
+            {%- endfor -%}
+          </ul>
+          {%- if paginate.pages > 1 -%}
+            <nav class="pw-pagination" aria-label="Pagination">
+              {%- if paginate.previous -%}
+                <a class="pw-btn pw-btn--outline pw-btn--sm" href="{{ paginate.previous.url }}">&larr;</a>
+              {%- endif -%}
+              <span>{{ paginate.current_page }} / {{ paginate.pages }}</span>
+              {%- if paginate.next -%}
+                <a class="pw-btn pw-btn--outline pw-btn--sm" href="{{ paginate.next.url }}">&rarr;</a>
+              {%- endif -%}
+            </nav>
+          {%- endif -%}
+        {%- else -%}
+          <p class="pw-lede">{{ 'search.no_results' | t: terms: search.terms }}</p>
+        {%- endif -%}
+      {%- endpaginate -%}
+    {%- else -%}
+      <p class="pw-lede">{{ 'search.enter_terms' | t }}</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Search results",
+  "settings": []
+}
+{% endschema %}

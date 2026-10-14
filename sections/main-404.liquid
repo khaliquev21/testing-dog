@@ -1,0 +1,15 @@
+<section class="pw-page pw-page--center" data-section-id="{{ section.id }}">
+  <div class="pw-page__inner pw-container pw-container--narrow">
+    {% render 'icon', name: 'paw', size: 48, class: 'pw-page__mark' %}
+    <h1 class="pw-page__title">{{ 'general.page_not_found' | t }}</h1>
+    <p class="pw-lede">{{ 'general.page_not_found_text' | t }}</p>
+    <a class="pw-btn pw-btn--primary pw-btn--lg" href="{{ routes.root_url }}">{{ 'general.continue_shopping' | t }}</a>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Page not found",
+  "settings": []
+}
+{% endschema %}

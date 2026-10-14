@@ -1,0 +1,55 @@
+<section class="pw-collection" data-section-id="{{ section.id }}">
+  <div class="pw-collection__inner pw-container">
+    <h1 class="pw-collection__title">
+      {%- if collection.title != blank and collection.handle != 'all' -%}
+        {{ collection.title }}
+      {%- else -%}
+        {{ 'collection.title' | t }}
+      {%- endif -%}
+    </h1>
+
+    {%- paginate collection.products by 12 -%}
+      {%- if collection.products.size == 0 -%}
+        <p class="pw-lede">{{ 'collection.empty' | t }}</p>
+      {%- else -%}
+        <ul class="pw-grid">
+          {%- for product in collection.products -%}
+            <li class="pw-card">
+              <a class="pw-card__media" href="{{ product.url }}">
+                {%- if product.featured_media != blank -%}
+                  {{
+                    product.featured_media
+                    | image_url: width: 800
+                    | image_tag: widths: '300, 500, 800', sizes: '(min-width: 990px) 25vw, 50vw', loading: 'lazy', alt: product.featured_media.alt | default: product.title, class: 'pw-media__img pw-fit--contain'
+                  }}
+                {%- else -%}
+                  {% render 'icon', name: 'paw', size: 48, class: 'pw-card__mark' %}
+                {%- endif -%}
+              </a>
+              <a class="pw-card__title" href="{{ product.url }}">{{ product.title }}</a>
+              {% render 'price', product: product, class: 'pw-card__price' %}
+            </li>
+          {%- endfor -%}
+        </ul>
+        {%- if paginate.pages > 1 -%}
+          <nav class="pw-pagination" aria-label="Pagination">
+            {%- if paginate.previous -%}
+              <a class="pw-btn pw-btn--outline pw-btn--sm" href="{{ paginate.previous.url }}">&larr;</a>
+            {%- endif -%}
+            <span>{{ paginate.current_page }} / {{ paginate.pages }}</span>
+            {%- if paginate.next -%}
+              <a class="pw-btn pw-btn--outline pw-btn--sm" href="{{ paginate.next.url }}">&rarr;</a>
+            {%- endif -%}
+          </nav>
+        {%- endif -%}
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection",
+  "settings": []
+}
+{% endschema %}
