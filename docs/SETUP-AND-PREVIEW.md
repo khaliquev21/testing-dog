@@ -50,6 +50,15 @@ Follow [MEDIA-CHECKLIST.md](MEDIA-CHECKLIST.md). In short:
 - **Reviews:** install a reviews app that supports app blocks, then add its block inside the **Reviews** section. Until then shoppers see only the "no reviews yet" text.
 - **FAQ:** unanswered questions are hidden. Write the answers once your supplier confirms them: Customize > Product page > FAQ.
 
+### Shipping, Returns and Support accordion
+
+The three rows under the buy box open into detail panels. What each panel shows:
+
+- **Your Shopify policies:** the text from **Settings > Policies** (shipping and refund) is pulled in automatically, with a link to the full policy. Write them there once.
+- **Details you add yourself:** in **Customize > Product page > Product**, open each *Info accordion row* and fill the detail fields (for Shipping: processing time, delivery time, shipping cost, where you ship; for Returns: who can return, how to start a return, refunds). **Empty details are hidden from shoppers and nothing is invented.** In the theme editor they show a "Not set yet" reminder so you can see what is left.
+- **Support:** add an email, phone and hours in the row, or leave the email empty to use your Shopify store email (**Settings > Store details**). Only add hours you actually keep.
+- Without JavaScript all panels are simply open and readable.
+
 ## 5. Preview checklist
 
 1. **Product page:** the gallery changes with thumbnails and arrows, videos loop with a pause button, the price reads $29.99.

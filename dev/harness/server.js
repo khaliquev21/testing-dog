@@ -166,7 +166,7 @@ const videoObj = (file, w, h, mimeType = 'video/webm') => ({
   preview_image: img(1)
 });
 
-const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '' };
+const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '', policies: false };
 
 function makeProduct() {
   const mk = (id, title, options = {}) => ({
@@ -303,7 +303,9 @@ function buildGlobals({ templateName, pageType, designMode, product }) {
     collections: { all: { products: [makeProduct()] } },
     collection: { title: 'Products', handle: 'all', products: [makeProduct()] },
     cart: cartObject(),
-    shop: { name: 'Pawora Test Store', email: 'hello@example.com' },
+    shop: { name: 'Pawora Test Store', email: 'hello@example.com',
+      shipping_policy: state.policies ? { body: '<p>TEST shipping policy text.</p>', url: '/policies/shipping-policy' } : null,
+      refund_policy: state.policies ? { body: '<p>TEST refund policy text.</p>', url: '/policies/refund-policy' } : null },
     request: { design_mode: !!designMode, page_type: pageType, locale: { iso_code: 'en' } },
     routes: {
       root_url: '/', cart_url: '/cart', cart_add_url: '/cart/add', cart_change_url: '/cart/change',
@@ -417,10 +419,11 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* test controls */
-    if (p === '/__reset') { Object.assign(state, { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1 }); return send(res, 200, 'reset', 'text/plain'); }
+    if (p === '/__reset') { Object.assign(state, { policies: false, cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1 }); return send(res, 200, 'reset', 'text/plain'); }
     if (p === '/__set') {
       for (const [k, v] of url.searchParams) {
         if (['price', 'stock', 'maxQty', 'variants'].includes(k)) state[k] = parseInt(v, 10);
+        else if (k === 'policies') state.policies = v === '1';
         else if (k === 'compareAt') state.compareAt = v ? parseInt(v, 10) : null;
         else if (k === 'scenario') state.scenario = v;
         else if (k === 'cartType') state.cartType = v || null;

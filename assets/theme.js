@@ -607,6 +607,44 @@
   }
   define('header-nav', HeaderNav);
 
+  /* ---------- <info-accordion>: Shipping / Returns / Support rows ---------- */
+  class InfoAccordion extends HTMLElement {
+    connectedCallback() {
+      this.items = Array.prototype.slice.call(this.querySelectorAll('[data-acc]'));
+      this.items.forEach(function (item) {
+        var panel = item.querySelector('[data-acc-panel]');
+        if (panel) panel.inert = true;
+      });
+      this.addEventListener('click', function (event) {
+        var trigger = event.target.closest('[data-acc-trigger]');
+        if (!trigger) return;
+        this.toggle(trigger.closest('[data-acc]'));
+      }.bind(this));
+      this.addEventListener('keydown', function (event) {
+        var trigger = event.target.closest('[data-acc-trigger]');
+        if (!trigger) return;
+        var triggers = this.items.map(function (i) { return i.querySelector('[data-acc-trigger]'); });
+        var index = triggers.indexOf(trigger);
+        var next = null;
+        if (event.key === 'ArrowDown') next = triggers[(index + 1) % triggers.length];
+        else if (event.key === 'ArrowUp') next = triggers[(index - 1 + triggers.length) % triggers.length];
+        else if (event.key === 'Home') next = triggers[0];
+        else if (event.key === 'End') next = triggers[triggers.length - 1];
+        if (next) { event.preventDefault(); next.focus(); }
+      }.bind(this));
+    }
+
+    toggle(item) {
+      var trigger = item.querySelector('[data-acc-trigger]');
+      var panel = item.querySelector('[data-acc-panel]');
+      var open = trigger.getAttribute('aria-expanded') !== 'true';
+      trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+      item.classList.toggle('is-open', open);
+      panel.inert = !open;
+    }
+  }
+  define('info-accordion', InfoAccordion);
+
   /* ---------- <faq-accordion>: one question open at a time ---------- */
   class FaqAccordion extends HTMLElement {
     connectedCallback() {

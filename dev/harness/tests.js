@@ -376,6 +376,76 @@ async function newPage(browser, opts = {}) {
     check('no media at all: hero media and demo are hidden, nothing fake shown', !/pw-hero__panel/.test(html) && !/id="demo"/.test(html));
   }
 
+  group('Shipping / Returns / Support accordion');
+  await reset(); await set('scenario=media');
+  {
+    const { ctx, page } = await newPage(browser);
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const trig = page.locator('[data-acc-trigger]');
+    check('three accordion rows: Shipping, Returns, Support', (await trig.count()) === 3 && /Shipping/.test(await trig.nth(0).innerText()) && /Returns/.test(await trig.nth(1).innerText()) && /Support/.test(await trig.nth(2).innerText()));
+    check('rows are real buttons with aria-expanded=false and aria-controls', (await trig.evaluateAll((els) => els.every((e) => e.tagName === 'BUTTON' && e.getAttribute('aria-expanded') === 'false' && document.getElementById(e.getAttribute('aria-controls'))))));
+    check('closed panels are hidden from keyboard and screen readers', await page.locator('[data-acc-panel]').first().evaluate((p) => p.inert && getComputedStyle(p).visibility === 'hidden'));
+    // click on the summary text (not the icon) opens the row
+    await page.locator('.pw-acc__summary').first().click();
+    await page.waitForTimeout(500);
+    check('clicking the row text opens it (aria-expanded=true)', (await trig.nth(0).getAttribute('aria-expanded')) === 'true');
+    const open = await page.locator('[data-acc-panel]').first().evaluate((p) => ({ h: p.getBoundingClientRect().height, vis: getComputedStyle(p).visibility, inert: p.inert }));
+    check('panel animates open to real height and is reachable', open.h > 40 && open.vis === 'visible' && !open.inert, JSON.stringify(open));
+    const rot = await page.locator('.pw-acc__chevron').first().evaluate((c) => getComputedStyle(c).transform);
+    check('chevron rotates when open', /matrix\(-1/.test(rot), rot);
+    await trig.nth(0).click(); await page.waitForTimeout(500);
+    check('clicking again collapses it', (await trig.nth(0).getAttribute('aria-expanded')) === 'false' && (await page.locator('[data-acc-panel]').first().evaluate((p) => p.getBoundingClientRect().height)) < 2);
+    // keyboard
+    await trig.nth(0).focus(); await page.keyboard.press('ArrowDown');
+    check('ArrowDown moves focus to the next row', await trig.nth(1).evaluate((e) => document.activeElement === e));
+    await page.keyboard.press('Enter'); await page.waitForTimeout(400);
+    check('Enter toggles the focused row', (await trig.nth(1).getAttribute('aria-expanded')) === 'true');
+    await page.keyboard.press('Space'); await page.waitForTimeout(400);
+    check('Space toggles it closed again', (await trig.nth(1).getAttribute('aria-expanded')) === 'false');
+    await page.keyboard.press('End');
+    check('End jumps to the last row', await trig.nth(2).evaluate((e) => document.activeElement === e));
+    await trig.nth(2).click(); await trig.nth(0).click(); await page.waitForTimeout(500);
+    check('rows toggle independently (several can be open)', (await trig.nth(2).getAttribute('aria-expanded')) === 'true' && (await trig.nth(0).getAttribute('aria-expanded')) === 'true');
+    const support = await page.locator('[data-acc-panel]').nth(2).innerText();
+    check('Support panel: order help, product help, email and contact link', /order number/.test(support) && /hello@example\.com/.test(support) && /Contact us/.test(support), support.replace(/\s+/g, ' ').slice(0, 140));
+    const ship = await page.locator('[data-acc-panel]').nth(0).innerText();
+    check('Shipping panel shows no invented times or fees when none are set', !/\d+\s*(business )?days|\$\d|free shipping/i.test(ship) && /shown at checkout/.test(ship), ship.replace(/\s+/g, ' '));
+    check('no horizontal scroll with panels open', (await page.evaluate(() => document.documentElement.scrollWidth)) <= 1440);
+    check('no JS errors', page.errors.length === 0, page.errors.join('|'));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await newPage(browser, { javaScriptEnabled: false });
+    await page.goto(BASE + PRODUCT, { waitUntil: 'load' });
+    check('without JavaScript every panel is open and readable', await page.locator('[data-acc-panel]').nth(2).isVisible() && /order number/.test(await page.locator('[data-acc-panel]').nth(2).innerText()));
+    await ctx.close();
+  }
+  await set('policies=1');
+  {
+    const { ctx, page } = await newPage(browser);
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    await page.locator('[data-acc-trigger]').nth(0).click(); await page.locator('[data-acc-trigger]').nth(1).click(); await page.waitForTimeout(500);
+    const a = await page.locator('[data-acc-panel]').nth(0).innerText(); const b = await page.locator('[data-acc-panel]').nth(1).innerText();
+    check('Shopify shipping and refund policy text is pulled into the panels', /TEST shipping policy text/.test(a) && /TEST refund policy text/.test(b));
+    check('links point to the Shopify policy pages', (await page.locator('[data-acc-panel]').nth(0).locator('a.pw-acc__link').getAttribute('href')) === '/policies/shipping-policy' && (await page.locator('[data-acc-panel]').nth(1).locator('a.pw-acc__link').getAttribute('href')) === '/policies/refund-policy');
+    await ctx.close();
+  }
+  await set('policies=0');
+  {
+    const ed = await get(PRODUCT + '?design_mode=1');
+    check('theme editor flags details still to configure; shoppers do not see them', /Not set yet/.test(ed) && !/Not set yet/.test(await get(PRODUCT)));
+  }
+  {
+    const { ctx, page } = await newPage(browser, { viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const h = await page.locator('[data-acc-trigger]').first().evaluate((e) => e.getBoundingClientRect().height);
+    check('mobile: rows are at least 56px tall tap targets', h >= 56, String(h));
+    await page.locator('[data-acc-trigger]').nth(2).tap(); await page.waitForTimeout(500);
+    check('mobile: tap opens a row, no sideways scroll', (await page.locator('[data-acc-trigger]').nth(2).getAttribute('aria-expanded')) === 'true' && (await page.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+    await ctx.close();
+  }
+  await reset(); await set('scenario=media');
+
   /* ------------------------------------------------------------------ MOBILE NAV + SEARCH + FAQ */
   group('Mobile menu, search and FAQ');
   {

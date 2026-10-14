@@ -7,7 +7,7 @@ All of this ran against the real theme files in this repository.
 | Check | Result |
 | --- | --- |
 | Shopify `theme-check` (Liquid syntax, schema, templates) | 43 theme files, **0 offenses** (preload-style hints disabled in `.theme-check.yml`) |
-| Behaviour tests in headless Chromium (`dev/harness/tests.js`) | **116 of 116 passed** |
+| Behaviour tests in headless Chromium (`dev/harness/tests.js`) | **138 of 138 passed** |
 | Extra checks (`extra-checks.js`) | Cart-as-page mode, fonts, no third-party requests, class coverage: all passed |
 | Responsive sweep (`sweep.js`) | **No horizontal scrolling** in 120 page/width combinations (320 px to 1920 px, 5 page types, with and without media) |
 | Colour audit (`audit.js`) | 26 distinct colour values, all warm hues. **0 green** in the source and **0 green in 22,737 computed colour values** across 20 page/viewport combinations |
@@ -19,6 +19,7 @@ All of this ran against the real theme files in this repository.
 
 - **Gallery:** every Shopify media item becomes a slide and a thumbnail. Arrows (with wrap-around), thumbnails, keyboard arrows and variant-linked images all work. Videos autoplay muted, loop past their end, show a pause button, pause when you leave the slide or scroll away, and stay paused if the shopper paused them. With reduced motion on, nothing autoplays and the play button still works.
 - **Product page layout:** the gallery frame follows the photo's real shape (picture fills it), balanced two-column layout on desktop, stacked on tablet and mobile, mobile sticky Add to Cart bar, bundle cards from real variants, real-inventory low-stock note.
+- **Shipping / Returns / Support accordion:** real buttons with `aria-expanded` and `aria-controls`, closed panels not focusable, whole row clickable, animated open and close, chevron rotation, Arrow/Home/End/Enter/Space keys, independent rows, Shopify policy text pulled in, nothing invented when unset, editor-only reminders, open and readable without JavaScript, mobile tap size.
 - **Quantity:** 1 to 10 by default, never below 1, typing is clamped, the maximum comes from the theme setting and from tracked inventory.
 - **Add to Cart:** posts the real variant id and quantity to `/cart/add.js`, opens the cart drawer, shows the right unit price, line total and subtotal, updates the header count, accumulates repeat adds, and reports Shopify's own error when stock runs out. The drawer's plus, minus, typed quantity, Remove and Checkout all work. Escape and the overlay close it and focus returns to the button.
 - **Without JavaScript:** the product form still posts to `/cart/add`, and the cart page lists the item and reaches checkout.
@@ -45,7 +46,7 @@ npm install                # liquidjs, playwright-core, theme-check, axe-core, b
 sh make-fixtures.sh        # synthetic fixtures (needs ImageMagick and ffmpeg)
 ./restart.sh               # starts the mock Shopify on http://localhost:4177
 npm run lint               # Shopify theme-check
-npm test                   # 116 behaviour checks
+npm test                   # 138 behaviour checks
 npm run audit              # green, wording and accessibility audits
 npm run extra
 npm run sweep              # responsive overflow sweep
