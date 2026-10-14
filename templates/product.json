@@ -1,3 +1,12 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "main": {
@@ -66,12 +75,14 @@
       "settings": {
         "show_breadcrumb": true,
         "autoplay_videos": true,
+        "variant_label": "Choose your bundle",
+        "badge_variant": "",
+        "badge_text": "Most popular",
+        "low_stock_threshold": 5,
         "subtitle": "Steam mist brush · For dogs & cats · Short or long hair",
         "description_source": "text",
-        "note": "In the box: 1 brush, 1 shampoo.",
-        "variant_label": "Choose your bundle",
-        "badge_text": "Most popular",
-        "low_stock_threshold": 5
+        "description": "A deshedding brush with a built-in steam mist and a self-cleaning design. Rated IPX7 waterproof and described as skin friendly, it's made for dogs and cats with short or long hair.",
+        "note": "In the box: 1 brush, 1 shampoo."
       }
     },
     "details": {
@@ -80,6 +91,8 @@
         "feature_1": {
           "type": "feature",
           "settings": {
+            "image_alt": "",
+            "product_media_position": 0,
             "title": "Self-Cleaning Design",
             "text": "Made so collected fur comes off the brush without picking it out by hand."
           }
@@ -87,6 +100,8 @@
         "feature_2": {
           "type": "feature",
           "settings": {
+            "image_alt": "",
+            "product_media_position": 0,
             "title": "Steam Mist",
             "text": "A built-in mist function on a brush described as skin friendly."
           }
@@ -94,6 +109,8 @@
         "feature_3": {
           "type": "feature",
           "settings": {
+            "image_alt": "",
+            "product_media_position": 0,
             "title": "IPX7 Waterproof",
             "text": "Rated IPX7 waterproof."
           }
@@ -104,7 +121,12 @@
         "feature_2",
         "feature_3"
       ],
-      "settings": {}
+      "settings": {
+        "eyebrow": "THE DETAILS",
+        "heading": "Designed for Easier Grooming",
+        "video_url": "",
+        "video_caption": "The self-cleaning mechanism"
+      }
     },
     "how_it_works": {
       "type": "how-it-works",
@@ -112,6 +134,10 @@
         "step_1": {
           "type": "step",
           "settings": {
+            "image": "shopify://shop_images/pet_grooming_image_upload.jpg",
+            "video_url": "",
+            "image_alt": "",
+            "product_media_position": 0,
             "title": "Brush",
             "text": "Brush through your pet's coat to help lift loose fur."
           }
@@ -119,6 +145,10 @@
         "step_2": {
           "type": "step",
           "settings": {
+            "image": "shopify://shop_images/pet_grooming_image_2_upload.jpg",
+            "video_url": "",
+            "image_alt": "",
+            "product_media_position": 0,
             "title": "Clean",
             "text": "Use the self-cleaning design to clear the collected fur."
           }
@@ -126,6 +156,9 @@
         "step_3": {
           "type": "step",
           "settings": {
+            "video_url": "",
+            "image_alt": "",
+            "product_media_position": 0,
             "title": "Finish",
             "text": "Finish the session and put the brush away ready for next time."
           }
@@ -136,11 +169,15 @@
         "step_2",
         "step_3"
       ],
-      "settings": {}
+      "settings": {
+        "eyebrow": "HOW IT WORKS",
+        "heading": "Three simple steps"
+      }
     },
     "reviews": {
       "type": "reviews",
       "settings": {
+        "eyebrow": "REVIEWS",
         "heading": "What Pet Parents Say",
         "text": "No reviews yet. Reviews from verified Pawora orders will show here once they come in — no ratings are displayed before then.",
         "layout": "split"
@@ -201,6 +238,8 @@
         "q_policies"
       ],
       "settings": {
+        "eyebrow": "FAQ",
+        "heading": "Questions, answered",
         "first_open": true
       }
     }
