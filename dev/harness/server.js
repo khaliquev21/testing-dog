@@ -19,6 +19,7 @@ const HARNESS_PARTIALS = path.join(__dirname, 'partials');
 const PORT = parseInt(process.env.PORT || '4177', 10);
 
 /* ------------------------------------------------------------------ locales */
+const parseJson = (t) => JSON.parse(t.replace(/^\s*\/\*[\s\S]*?\*\//, ''));
 const locale = JSON.parse(fs.readFileSync(path.join(THEME, 'locales/en.default.json'), 'utf8'));
 function translate(key, vars) {
   let node = key.split('.').reduce((o, k) => (o == null ? o : o[k]), locale);
@@ -147,9 +148,10 @@ const NON_VALUE = new Set(['header', 'paragraph']);
 
 function resolveSettings(defs, given) {
   const out = {};
+  const asImage = (v) => (typeof v === 'string' && v.startsWith('shopify://') ? { src: '/fixtures/fixture-wide.png', width: 1200, height: 900, alt: '', aspect_ratio: 1.33 } : v);
   for (const s of defs || []) {
     if (!s.id || NON_VALUE.has(s.type)) continue;
-    out[s.id] = given && given[s.id] !== undefined ? given[s.id] : settingDefault(s);
+    out[s.id] = asImage(given && given[s.id] !== undefined ? given[s.id] : settingDefault(s));
   }
   return out;
 }
@@ -264,7 +266,7 @@ engine.registerTag('sections', class extends Tag {
   constructor(token, remain, liquid) { super(token, remain, liquid); this.name = token.args.trim().replace(/^['"]|['"]$/g, ''); }
   * render(ctx, emitter) {
     const globals = ctx.globals;
-    const group = JSON.parse(fs.readFileSync(path.join(THEME, 'sections', this.name + '.json'), 'utf8'));
+    const group = parseJson(fs.readFileSync(path.join(THEME, 'sections', this.name + '.json'), 'utf8'));
     let out = '';
     for (const key of group.order) {
       const s = group.sections[key];
@@ -294,7 +296,7 @@ function cartObject() {
 
 function buildGlobals({ templateName, pageType, designMode, product }) {
   const themeSchema = JSON.parse(fs.readFileSync(path.join(THEME, 'config/settings_schema.json'), 'utf8'));
-  const data = JSON.parse(fs.readFileSync(path.join(THEME, 'config/settings_data.json'), 'utf8')).current;
+  const data = parseJson(fs.readFileSync(path.join(THEME, 'config/settings_data.json'), 'utf8')).current;
   const defs = themeSchema.flatMap((g) => g.settings || []);
   const settings = resolveSettings(defs, { ...data, max_quantity: state.maxQty, ...(state.cartType ? { cart_type: state.cartType } : {}) });
   const prod = product || makeProduct();
@@ -323,7 +325,7 @@ function buildGlobals({ templateName, pageType, designMode, product }) {
 }
 
 async function renderTemplate(name, opts) {
-  const tplJson = JSON.parse(fs.readFileSync(path.join(THEME, 'templates', name + '.json'), 'utf8'));
+  const tplJson = parseJson(fs.readFileSync(path.join(THEME, 'templates', name + '.json'), 'utf8'));
   const globals = buildGlobals({ ...opts, templateName: name.split('.')[0] });
   let content = '';
   for (const key of tplJson.order) {
