@@ -35,7 +35,11 @@
     "unavailable": "Unavailable",
     "error_generic": "Sorry, we couldn't add that to your bag. Please try again.",
     "no_media": "Product images coming soon",
-    "breadcrumb": "Breadcrumb"
+    "breadcrumb": "Breadcrumb",
+    "low_stock": {
+      "one": "Only {{ count }} left in stock",
+      "other": "Only {{ count }} left in stock"
+    }
   },
   "cart": {
     "title": "Your bag",

@@ -26,13 +26,13 @@ Your Store Launch connection had no store linked, so the price could not be set 
 1. **Products** > open the brush (create it first if it does not exist: **Add product**).
 2. **Title:** `Self-Cleaning Pet Grooming Brush` (the theme shows the product title exactly as typed here).
 3. **Pricing > Price:** `29.99`. Leave **Compare-at price** empty. The theme hides compare-at prices by default, so there is one standard price.
-4. Keep **a single variant** (no options). Only add variants if the product really has them. The theme shows a selector automatically when it does.
+4. **Bundles (optional):** add one option, for example `Pack size`, with real variants such as `1 Pack`, `2 Packs`, `3 Packs`, each with its own price and inventory. The product page turns them into selectable cards automatically and adds the chosen variant to the cart. With only one variant, no cards are shown. Set your own bundle prices; the theme never invents a discount. Savings (struck-through price and "Save %") appear only if you set a Compare-at price on a variant **and** turn on Theme settings > Product and pricing > compare-at price.
 5. **Save.**
 6. Check the currency: **Settings > Store details** (store currency) and **Settings > Markets**. The price displays in USD when the store currency is USD. The theme can append "USD" after prices (Theme settings > Product and pricing).
 
 The price is then shown in the product page, the homepage and closing buttons, the cart drawer, the cart page and the structured data, all read from this one field.
 
-Do not add bundles, multi-pack prices or quantity discounts. The theme has no bundle UI. Customers choose a quantity of single brushes on the product page.
+Customers can also choose a quantity of the selected variant on the product page.
 
 ## 3. Add the genuine product media
 

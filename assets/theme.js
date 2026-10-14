@@ -274,7 +274,10 @@
       this.submit = this.querySelector('[data-add-to-cart]');
       this.label = this.querySelector('[data-add-label]');
       this.errorBox = this.querySelector('[data-form-error]');
-      this.select = this.querySelector('[data-variant-select]');
+      this.variantInputs = Array.prototype.slice.call(this.querySelectorAll('[data-variant-input]'));
+      this.stockNote = this.querySelector('[data-stock-note]');
+      this.section = this.closest('.pw-product');
+      this.sticky = document.querySelector('[data-sticky-bar]');
       this.hiddenId = this.querySelector('[data-variant-id]');
       this.max = parseInt(this.dataset.max, 10) || 10;
       this.busy = false;
@@ -297,7 +300,10 @@
           this.input.value = this.input.value.replace(/[^0-9]/g, '');
         }.bind(this));
       }
-      if (this.select) this.select.addEventListener('change', this.onVariantChange.bind(this));
+      this.variantInputs.forEach(function (input) {
+        input.addEventListener('change', this.onVariantChange.bind(this));
+      }, this);
+      this.initSticky();
       this.form.addEventListener('submit', this.onSubmit.bind(this));
     }
 
@@ -331,8 +337,26 @@
       if (this.errorBox) { this.errorBox.hidden = true; this.errorBox.textContent = ''; }
     }
 
+    /* Mobile only: a bar with price + Add to Cart appears once the main button scrolls out of view. */
+    initSticky() {
+      if (!this.sticky || !this.submit || !('IntersectionObserver' in window)) return;
+      var narrow = window.matchMedia('(max-width: 749px)');
+      var visible = true;
+      var update = function () { this.sticky.hidden = !(narrow.matches && !visible); }.bind(this);
+      new IntersectionObserver(function (entries) {
+        visible = entries[0].isIntersecting || entries[0].boundingClientRect.top > 0;
+        update();
+      }).observe(this.submit);
+      if (narrow.addEventListener) narrow.addEventListener('change', update);
+    }
+
     onVariantChange() {
-      var id = this.select.value;
+      var checked = this.variantInputs.filter(function (i) { return i.checked; })[0];
+      if (!checked) return;
+      this.variantInputs.forEach(function (i) {
+        i.closest('.pw-variant').classList.toggle('is-selected', i.checked);
+      });
+      var id = checked.value;
       var variant = this.variants.find(function (v) { return String(v.id) === String(id); });
       if (!variant) return;
 
@@ -341,7 +365,18 @@
       this.submit.disabled = !variant.available;
       this.setQty(this.qty());
 
-      var section = this.closest('.pw-product');
+      if (this.stockNote) {
+        this.stockNote.hidden = !variant.stock;
+        this.stockNote.textContent = variant.stock ? (strings.lowStock || '').replace('__COUNT__', variant.stock) : '';
+      }
+      if (this.sticky) {
+        var sb = this.sticky.querySelector('[data-sticky-button]');
+        if (sb) { sb.disabled = !variant.available; sb.textContent = variant.available ? strings.addToCart : strings.soldOut; }
+        var sp = this.sticky.querySelector('[data-price]');
+        if (sp) sp.textContent = variant.priceFormatted;
+      }
+
+      var section = this.section;
       if (section) {
         var price = section.querySelector('[data-price]');
         if (price) price.textContent = variant.priceFormatted;

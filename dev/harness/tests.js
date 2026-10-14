@@ -275,25 +275,78 @@ async function newPage(browser, opts = {}) {
   }
 
   /* ------------------------------------------------------------------ VARIANTS */
-  group('Real variants (only if the product has them)');
+  group('Real variants as bundle cards, stock, gallery fit, sticky bar');
   await reset(); await set('scenario=media&variants=3');
   {
     const { ctx, page } = await newPage(browser);
     await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
-    check('variant selector appears for multi-variant products', (await page.locator('[data-variant-select]').count()) === 1);
-    check('sold-out variant is disabled', await page.locator('[data-variant-select] option[value="1003"]').isDisabled());
-    await page.selectOption('[data-variant-select]', '1002');
+    check('option cards appear for multi-variant products (one per real variant)', (await page.locator('[data-variant-input]').count()) === 3);
+    check('first available variant is preselected', await page.locator('[data-variant-input][value="1001"]').isChecked());
+    check('sold-out variant card is disabled', await page.locator('[data-variant-input][value="1003"]').isDisabled());
+    await page.click('.pw-variant:has([value="1002"])');
     await page.waitForTimeout(300);
-    check('choosing a variant switches the gallery to its featured media', (await page.locator('[data-gallery-slide].is-active').getAttribute('data-index')) === '3');
+    check('choosing a card marks it selected and switches the gallery to its media', (await page.locator('.pw-variant.is-selected [value="1002"]').count()) === 1 && (await page.locator('[data-gallery-slide].is-active').getAttribute('data-index')) === '3');
     await page.click('[data-add-to-cart]'); await page.waitForSelector('cart-drawer.is-open');
-    check('adds the selected variant id (1002)', (await state()).cart[0].variantId === 1002);
+    check('adds the selected variant id (1002) to the Shopify cart', (await state()).cart[0].variantId === 1002);
     await ctx.close();
   }
   await reset(); await set('scenario=media');
   {
     const html = await get(PRODUCT);
-    check('no variant selector for single default-variant products', !/data-variant-select/.test(html));
-    check('no bundle / multi-pack / discount UI anywhere', !/bundle|multi-?pack|buy 2|save \d+%/i.test(html + (await get('/'))));
+    check('no option cards for single default-variant products', !/data-variant-input/.test(html));
+    check('no invented savings or discount text when Shopify has no compare-at price', !/Save \d+%|pw-variant__save/.test(html));
+  }
+  await reset(); await set('scenario=media&variants=3&compareAt=4999&price=2999');
+  {
+    const html = await get('/products/self-cleaning-pet-grooming-brush');
+    check('savings only shown when the theme setting is on (off by default)', !/pw-variant__save/.test(html));
+  }
+  await reset(); await set('scenario=media&stock=3');
+  {
+    const { ctx, page } = await newPage(browser);
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    check('low-stock note uses the real inventory count', /Only 3 left/.test(await page.locator('[data-stock-note]').innerText()));
+    await ctx.close();
+    await set('stock=50');
+    const c2 = await newPage(browser);
+    await c2.page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    check('no low-stock note when stock is plentiful', await c2.page.locator('[data-stock-note]').isHidden());
+    await c2.ctx.close();
+  }
+  await reset(); await set('scenario=media');
+  for (const [name, vp] of [['desktop', { width: 1440, height: 900 }], ['tablet', { width: 820, height: 1100 }], ['mobile', { width: 390, height: 844 }]]) {
+    const { ctx, page } = await newPage(browser, { viewport: vp });
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const m = await page.evaluate(() => {
+      const stage = document.querySelector('.pw-gallery__slides').getBoundingClientRect();
+      const img = document.querySelector('.pw-gallery__slide.is-active img');
+      const nat = img.naturalWidth / img.naturalHeight;
+      const boxR = stage.width / stage.height;
+      const fill = nat > boxR ? (stage.width / nat) / stage.height : (stage.height * nat) / stage.width;
+      const info = document.querySelector('.pw-product__info').getBoundingClientRect();
+      const gal = document.querySelector('.pw-gallery').getBoundingClientRect();
+      return { fill: Math.round(fill * 100) / 100, galH: Math.round(gal.height), infoH: Math.round(info.height), sideBySide: info.left > gal.right - 5 };
+    });
+    check(`${name}: gallery picture fills the frame (no large empty bars)`, m.fill >= 0.95, JSON.stringify(m));
+    if (name === 'desktop') check('desktop: gallery and info are balanced side by side (height gap under 35%)', m.sideBySide && Math.abs(m.galH - m.infoH) / Math.max(m.galH, m.infoH) < 0.35, JSON.stringify(m));
+    if (name !== 'desktop') check(`${name}: gallery stacks above the info`, !m.sideBySide);
+    if (name === 'mobile') {
+      check('mobile: sticky bar hidden while main Add to Cart is visible', await page.locator('[data-sticky-bar]').isHidden());
+      await page.evaluate(() => window.scrollTo(0, document.querySelector('.pw-details').offsetTop));
+      await page.waitForTimeout(400);
+      check('mobile: sticky Add to Cart bar appears after scrolling past the buy box, with the live price', (await page.locator('[data-sticky-bar]').isVisible()) && /\$29\.99/.test(await page.locator('[data-sticky-bar]').innerText()));
+      await page.click('[data-sticky-button]');
+      await page.waitForSelector('cart-drawer.is-open');
+      check('mobile: sticky button adds to the Shopify cart', (await state()).cart[0].quantity === 1);
+    } else {
+      check(`${name}: no sticky bar`, await page.locator('[data-sticky-bar]').isHidden());
+    }
+    await ctx.close();
+  }
+  await reset(); await set('scenario=media');
+  {
+    const html = await get(PRODUCT);
+    check('no bundle / discount UI on the page unless the product has real variants', !/bundle|multi-?pack|buy 2/i.test(html));
   }
 
   /* ------------------------------------------------------------------ MOBILE NAV + SEARCH + FAQ */

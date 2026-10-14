@@ -68,6 +68,7 @@
           addedToCart: {{ 'product.added_to_cart' | t | json }},
           adding: {{ 'product.adding' | t | json }},
           soldOut: {{ 'product.sold_out' | t | json }},
+          lowStock: {{ 'product.low_stock' | t: count: '__COUNT__' | json }},
           unavailable: {{ 'product.unavailable' | t | json }},
           errorAdd: {{ 'product.error_generic' | t | json }},
           errorCart: {{ 'cart.error_generic' | t | json }},

@@ -16,12 +16,21 @@
     endif
   endif
 
-  assign first_image_media = nil
-  for media in product.media
-    if media.media_type == 'image' and first_image_media == nil
-      assign first_image_media = media
-    endif
-  endfor
+  comment
+    Gallery frame follows the first media item's real shape (clamped) so there is no big empty area.
+  endcomment
+  assign gallery_ratio = product.featured_media.preview_image.aspect_ratio | default: 1
+  if gallery_ratio > 1.25
+    assign gallery_ratio = 1.25
+  elsif gallery_ratio < 0.8
+    assign gallery_ratio = 0.8
+  endif
+
+  assign low_stock_limit = section.settings.low_stock_threshold | default: 0
+  assign stock_left = 0
+  if current_variant.inventory_management == 'shopify' and current_variant.inventory_quantity > 0 and current_variant.inventory_quantity <= low_stock_limit
+    assign stock_left = current_variant.inventory_quantity
+  endif
 -%}
 
 {%- if section.settings.show_breadcrumb -%}
@@ -38,7 +47,7 @@
   <div class="pw-product__grid pw-container">
 
     {%- comment -%} ---------- Gallery: real Shopify product media ---------- {%- endcomment -%}
-    <product-gallery class="pw-gallery" data-autoplay="{{ section.settings.autoplay_videos }}" data-total="{{ media_total }}">
+    <product-gallery class="pw-gallery" style="--gallery-ratio: {{ gallery_ratio }}" data-autoplay="{{ section.settings.autoplay_videos }}" data-total="{{ media_total }}">
       <div class="pw-gallery__stage" role="group" aria-roledescription="carousel" aria-label="{{ 'accessibility.product_media' | t }}">
         {%- if media_total > 0 -%}
           <div class="pw-gallery__slides" data-gallery-slides>
@@ -172,17 +181,35 @@
       <product-form class="pw-buy" data-max="{{ max_qty }}" data-form-id="{{ form_id }}">
         {%- form 'product', product, id: form_id, class: 'pw-buy__form', novalidate: 'novalidate' -%}
           {%- if has_variants -%}
-            <div class="pw-field">
-              <label class="pw-field__label" for="Variant-{{ section.id }}">{{ product.options_with_values.first.name | default: 'Option' }}</label>
-              <select id="Variant-{{ section.id }}" class="pw-select" name="id" data-variant-select>
+            <fieldset class="pw-variants">
+              <legend class="pw-buy__label">{{ section.settings.variant_label | default: product.options_with_values.first.name }}</legend>
+              <div class="pw-variants__grid">
                 {%- for variant in product.variants -%}
-                  <option value="{{ variant.id }}"{% if variant == current_variant %} selected{% endif %}{% unless variant.available %} disabled{% endunless %}>
-                    {{- variant.title -}}
-                    {%- unless variant.available %} — {{ 'product.sold_out' | t }}{% endunless -%}
-                  </option>
+                  {%- liquid
+                    assign save_percent = 0
+                    if settings.show_compare_at_price and variant.compare_at_price > variant.price
+                      assign save_percent = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | round
+                    endif
+                  -%}
+                  <label class="pw-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-soldout{% endunless %}">
+                    <input class="pw-variant__input" type="radio" name="id" value="{{ variant.id }}" data-variant-input{% if variant == current_variant %} checked{% endif %}{% unless variant.available %} disabled{% endunless %}>
+                    {%- if section.settings.badge_text != blank and section.settings.badge_variant == variant.title -%}
+                      <span class="pw-variant__badge">{{ section.settings.badge_text }}</span>
+                    {%- endif -%}
+                    <span class="pw-variant__title">{{ variant.title }}</span>
+                    <span class="pw-variant__price">
+                      {%- if settings.show_currency_code -%}{{ variant.price | money_with_currency }}{%- else -%}{{ variant.price | money }}{%- endif -%}
+                    </span>
+                    {%- if save_percent > 0 -%}
+                      <span class="pw-variant__save"><s>{{ variant.compare_at_price | money }}</s> Save {{ save_percent }}%</span>
+                    {%- endif -%}
+                    {%- unless variant.available -%}
+                      <span class="pw-variant__note">{{ 'product.sold_out' | t }}</span>
+                    {%- endunless -%}
+                  </label>
                 {%- endfor -%}
-              </select>
-            </div>
+              </div>
+            </fieldset>
           {%- else -%}
             <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
           {%- endif -%}
@@ -226,6 +253,9 @@
               </span>
             </button>
           </div>
+          <p class="pw-buy__stock" data-stock-note{% if stock_left == 0 %} hidden{% endif %}>
+            {%- if stock_left > 0 -%}{{ 'product.low_stock' | t: count: stock_left }}{%- endif -%}
+          </p>
           <p class="pw-buy__error" role="alert" data-form-error hidden></p>
         {%- endform -%}
 
@@ -240,6 +270,7 @@
                   "priceFormatted": {% if settings.show_currency_code %}{{ variant.price | money_with_currency | json }}{% else %}{{ variant.price | money | json }}{% endif %},
                   "compareFormatted": {% if settings.show_compare_at_price and variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money | json }}{% else %}""{% endif %},
                   "mediaId": {{ variant.featured_media.id | json }},
+                  "stock": {% if variant.inventory_management == 'shopify' and variant.inventory_quantity > 0 and variant.inventory_quantity <= low_stock_limit %}{{ variant.inventory_quantity }}{% else %}0{% endif %},
                   "max": {% if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny' and variant.inventory_quantity > 0 and variant.inventory_quantity < settings.max_quantity %}{{ variant.inventory_quantity }}{% else %}{{ settings.max_quantity }}{% endif %}
                 }{% unless forloop.last %},{% endunless %}
               {%- endfor -%}
@@ -247,6 +278,19 @@
           </script>
         {%- endif -%}
       </product-form>
+
+      {%- assign perk_blocks = section.blocks | where: 'type', 'perk' -%}
+      {%- if perk_blocks.size > 0 -%}
+        <ul class="pw-perks">
+          {%- for block in perk_blocks -%}
+            <li class="pw-perk" {{ block.shopify_attributes }}>
+              <span class="pw-perk__icon">{% render 'icon', name: block.settings.icon, size: 22, stroke: 1.8 %}</span>
+              <span class="pw-perk__title">{{ block.settings.title }}</span>
+              {%- if block.settings.text != blank -%}<span class="pw-perk__text">{{ block.settings.text }}</span>{%- endif -%}
+            </li>
+          {%- endfor -%}
+        </ul>
+      {%- endif -%}
 
       {%- assign info_blocks = section.blocks | where: 'type', 'info_row' -%}
       {%- if info_blocks.size > 0 -%}
@@ -278,6 +322,18 @@
   </div>
 </section>
 
+<div class="pw-sticky" data-sticky-bar hidden>
+  <div class="pw-sticky__info">
+    <span class="pw-sticky__title">{{ product.title }}</span>
+    <span class="pw-sticky__price" data-price>
+      {%- if settings.show_currency_code -%}{{ current_variant.price | money_with_currency }}{%- else -%}{{ current_variant.price | money }}{%- endif -%}
+    </span>
+  </div>
+  <button type="submit" form="{{ form_id }}" class="pw-btn pw-btn--primary pw-sticky__button" data-sticky-button{% unless current_variant.available %} disabled{% endunless %}>
+    {%- if current_variant.available -%}{{ 'product.add_to_cart' | t }}{%- else -%}{{ 'product.sold_out' | t }}{%- endif -%}
+  </button>
+</div>
+
 <script type="application/ld+json">
   {{ product | structured_data }}
 </script>
@@ -295,6 +351,31 @@
       "label": "Play product videos automatically",
       "default": true,
       "info": "Videos play muted and loop, with a play / pause button. They stay paused for shoppers who prefer reduced motion."
+    },
+    { "type": "header", "content": "Bundle / option cards" },
+    {
+      "type": "text",
+      "id": "variant_label",
+      "label": "Heading above the option cards",
+      "default": "Choose your bundle",
+      "info": "Cards are built from the product's real Shopify variants and prices. They only appear if the product has more than one variant."
+    },
+    {
+      "type": "text",
+      "id": "badge_variant",
+      "label": "Variant to highlight (exact variant name)",
+      "info": "For example the variant you want to mark as most popular. Leave empty for no badge."
+    },
+    { "type": "text", "id": "badge_text", "label": "Highlight badge text", "default": "Most popular" },
+    {
+      "type": "range",
+      "id": "low_stock_threshold",
+      "label": "Show \"only a few left\" at or below",
+      "min": 0,
+      "max": 20,
+      "step": 1,
+      "default": 5,
+      "info": "Uses the real inventory count when Shopify tracks it. Set to 0 to turn off."
     },
     { "type": "header", "content": "Text" },
     {
@@ -334,6 +415,29 @@
       "limit": 6,
       "settings": [
         { "type": "text", "id": "text", "label": "Text", "default": "Helps remove loose fur from short and long coats" }
+      ]
+    },
+    {
+      "type": "perk",
+      "name": "Benefit tile",
+      "limit": 4,
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icon",
+          "options": [
+            { "value": "fur", "label": "Brush bristles" },
+            { "value": "refresh", "label": "Self-cleaning arrows" },
+            { "value": "mist", "label": "Mist" },
+            { "value": "drop", "label": "Water drop" },
+            { "value": "check", "label": "Check mark" },
+            { "value": "paw", "label": "Paw" }
+          ],
+          "default": "fur"
+        },
+        { "type": "text", "id": "title", "label": "Title", "default": "Helps remove loose fur" },
+        { "type": "text", "id": "text", "label": "Short text" }
       ]
     },
     {

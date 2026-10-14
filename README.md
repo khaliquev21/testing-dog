@@ -31,7 +31,7 @@ A Shopify Online Store 2.0 theme for the **Pawora self-cleaning pet grooming bru
 ## How it behaves
 
 - **Price** is always read from the Shopify product (`product.price`). It is not typed into any template. Change it in Shopify admin and every place that shows it follows.
-- **Add to Cart** posts the real variant and quantity to Shopify's cart. No fake products, variants, bundles or demo checkout.
+- **Add to Cart** posts the real variant and quantity to Shopify's cart. No fake products, variants or demo checkout. Bundle cards come from the product's real variants.
 - **Media** is shown only if you have uploaded it. Empty slots show nothing to shoppers. Inside the theme editor they show a dashed reminder of what belongs there.
 - **Videos** are muted loops with a play / pause button, start only when on screen, and stay paused for shoppers who prefer reduced motion. Nothing is drawn over your footage.
 - **No reviews or ratings** are shown until you connect a reviews app. Questions in the FAQ without an answer are hidden from shoppers.

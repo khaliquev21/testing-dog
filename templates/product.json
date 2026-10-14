@@ -3,9 +3,30 @@
     "main": {
       "type": "main-product",
       "blocks": {
-        "benefit_1": { "type": "benefit", "settings": { "text": "Helps remove loose fur from short and long coats" } },
-        "benefit_2": { "type": "benefit", "settings": { "text": "Self-cleaning design for quicker clean-up" } },
-        "benefit_3": { "type": "benefit", "settings": { "text": "IPX7 waterproof, with 1 shampoo included" } },
+        "perk_1": {
+          "type": "perk",
+          "settings": {
+            "icon": "fur",
+            "title": "Helps remove loose fur",
+            "text": "Short and long coats"
+          }
+        },
+        "perk_2": {
+          "type": "perk",
+          "settings": {
+            "icon": "refresh",
+            "title": "Self-cleaning design",
+            "text": "Quicker clean-up"
+          }
+        },
+        "perk_3": {
+          "type": "perk",
+          "settings": {
+            "icon": "drop",
+            "title": "IPX7 waterproof",
+            "text": "Rated IPX7"
+          }
+        },
         "info_shipping": {
           "type": "info_row",
           "settings": {
@@ -34,13 +55,23 @@
           }
         }
       },
-      "block_order": ["benefit_1", "benefit_2", "benefit_3", "info_shipping", "info_returns", "info_support"],
+      "block_order": [
+        "perk_1",
+        "perk_2",
+        "perk_3",
+        "info_shipping",
+        "info_returns",
+        "info_support"
+      ],
       "settings": {
         "show_breadcrumb": true,
         "autoplay_videos": true,
         "subtitle": "Steam mist brush · For dogs & cats · Short or long hair",
         "description_source": "text",
-        "note": "In the box: 1 brush, 1 shampoo."
+        "note": "In the box: 1 brush, 1 shampoo.",
+        "variant_label": "Choose your bundle",
+        "badge_text": "Most popular",
+        "low_stock_threshold": 5
       }
     },
     "details": {
@@ -68,17 +99,43 @@
           }
         }
       },
-      "block_order": ["feature_1", "feature_2", "feature_3"],
+      "block_order": [
+        "feature_1",
+        "feature_2",
+        "feature_3"
+      ],
       "settings": {}
     },
     "how_it_works": {
       "type": "how-it-works",
       "blocks": {
-        "step_1": { "type": "step", "settings": { "title": "Brush", "text": "Brush through your pet's coat to help lift loose fur." } },
-        "step_2": { "type": "step", "settings": { "title": "Clean", "text": "Use the self-cleaning design to clear the collected fur." } },
-        "step_3": { "type": "step", "settings": { "title": "Finish", "text": "Finish the session and put the brush away ready for next time." } }
+        "step_1": {
+          "type": "step",
+          "settings": {
+            "title": "Brush",
+            "text": "Brush through your pet's coat to help lift loose fur."
+          }
+        },
+        "step_2": {
+          "type": "step",
+          "settings": {
+            "title": "Clean",
+            "text": "Use the self-cleaning design to clear the collected fur."
+          }
+        },
+        "step_3": {
+          "type": "step",
+          "settings": {
+            "title": "Finish",
+            "text": "Finish the session and put the brush away ready for next time."
+          }
+        }
       },
-      "block_order": ["step_1", "step_2", "step_3"],
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3"
+      ],
       "settings": {}
     },
     "reviews": {
@@ -135,11 +192,24 @@
           }
         }
       },
-      "block_order": ["q_pets", "q_coats", "q_selfclean", "q_steam", "q_clean", "q_policies"],
+      "block_order": [
+        "q_pets",
+        "q_coats",
+        "q_selfclean",
+        "q_steam",
+        "q_clean",
+        "q_policies"
+      ],
       "settings": {
         "first_open": true
       }
     }
   },
-  "order": ["main", "details", "how_it_works", "reviews", "faq"]
+  "order": [
+    "main",
+    "details",
+    "how_it_works",
+    "reviews",
+    "faq"
+  ]
 }
