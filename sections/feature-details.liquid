@@ -1,4 +1,5 @@
 {%- liquid
+  assign detail_product = collections.all.products.first
   assign has_video = false
   if section.settings.video != blank or section.settings.video_url != blank
     assign has_video = true
@@ -41,13 +42,21 @@
       <div class="pw-details__features">
         {%- for block in section.blocks -%}
           <div class="pw-feature" {{ block.shopify_attributes }}>
-            {%- if block.settings.image != blank or request.design_mode -%}
+            {%- liquid
+              assign feature_fb = nil
+              if block.settings.product_media_position > 0 and detail_product != blank
+                assign fb_i = block.settings.product_media_position | minus: 1
+                assign feature_fb = detail_product.media[fb_i]
+              endif
+            -%}
+            {%- if block.settings.image != blank or feature_fb or request.design_mode -%}
               {%- assign feature_label = block.settings.image_alt | default: block.settings.title -%}
               {%- assign feature_slot = forloop.index | plus: 2 -%}
               {%- assign feature_tag = 'PHOTO 0' | append: feature_slot -%}
               <div class="pw-feature__media">
                 {% render 'media-slot',
                   image: block.settings.image,
+                  fallback_media: feature_fb,
                   label: feature_label,
                   fit: 'cover',
                   sizes: '132px',
@@ -96,6 +105,7 @@
       "settings": [
         { "type": "image_picker", "id": "image", "label": "Photo", "info": "A genuine photo that shows this feature." },
         { "type": "text", "id": "image_alt", "label": "Photo description (alt text)" },
+        { "type": "range", "id": "product_media_position", "label": "Use product media number", "min": 0, "max": 12, "step": 1, "default": 0, "info": "Used only while no photo is chosen above. 1 = first item in the product's Media list. Choose one that truly shows this. 0 = off." },
         { "type": "text", "id": "title", "label": "Title", "default": "Self-Cleaning Design" },
         { "type": "textarea", "id": "text", "label": "Text", "default": "Made so collected fur comes off the brush without picking it out by hand." }
       ]

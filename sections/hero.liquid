@@ -11,8 +11,13 @@
       assign cta_url = routes.all_products_collection_url
     endif
   endif
+  assign fallback_media = nil
+  if section.settings.product_media_position > 0 and hero_product != blank
+    assign fb_index = section.settings.product_media_position | minus: 1
+    assign fallback_media = hero_product.media[fb_index]
+  endif
   assign has_media = false
-  if section.settings.image != blank
+  if section.settings.image != blank or fallback_media
     assign has_media = true
   endif
   assign show_media = false
@@ -74,6 +79,7 @@
           <div class="pw-hero__frame">
             {% render 'media-slot',
               image: section.settings.image,
+              fallback_media: fallback_media,
               label: section.settings.image_alt,
               fit: section.settings.image_fit,
               loading: 'eager',
@@ -146,6 +152,14 @@
         { "value": "cover", "label": "Fill the frame" }
       ],
       "default": "contain"
+    },
+    { "type": "header", "content": "Fallback from your Shopify product media" },
+    {
+      "type": "range",
+      "id": "product_media_position",
+      "label": "Use product media number",
+      "min": 0, "max": 12, "step": 1, "default": 1,
+      "info": "Used only while no photo is chosen above. 1 = the first item in the product's Media list. Pick a number whose picture truly shows this feature. 0 = off."
     },
     { "type": "header", "content": "Floating card" },
     { "type": "text", "id": "card_title", "label": "Card title", "default": "For dogs & cats" },

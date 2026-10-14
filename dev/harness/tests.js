@@ -349,6 +349,33 @@ async function newPage(browser, opts = {}) {
     check('no bundle / discount UI on the page unless the product has real variants', !/bundle|multi-?pack|buy 2/i.test(html));
   }
 
+  group('Fallback to the product\'s own Shopify media');
+  await reset(); await set('scenario=productmedia');
+  {
+    const { ctx, page } = await newPage(browser);
+    await page.goto(BASE + '/', { waitUntil: 'networkidle' });
+    await page.evaluate(async () => { for (let y = 0; y < 4000; y += 400) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 100)); } });
+    const heroSrc = await page.locator('.pw-hero__frame img').getAttribute('src');
+    check('hero uses the product\'s first media image when no hero photo is chosen', /fixture-1\.png/.test(heroSrc), heroSrc);
+    check('demo section uses the product\'s own video media (2 videos)', (await page.locator('#demo video').count()) === 2);
+    check('feature / step / intro slots stay empty (no guessing which photo shows what)', (await page.locator('.pw-intro__main img').count()) === 0 && (await page.locator('.pw-cta__media img').count()) === 0);
+    const noAlt = await page.$$eval('main img', (els) => els.filter((i) => !i.hasAttribute('alt')).length);
+    check('every image has an alt attribute', noAlt === 0);
+    const sizes = await page.$$eval('main img', (els) => els.filter((i) => !i.srcset || !i.sizes).length);
+    check('every image is responsive (srcset + sizes)', sizes === 0);
+    await ctx.close();
+  }
+  await reset(); await set('scenario=imagesonly');
+  {
+    const html = await get('/');
+    check('no product video: demo shows a real product image, no play button, no footage claim', /id="demo"/.test(html) && !/pw-loop/.test(html.split('id="demo"')[1].split('</section>')[0]) && !/REAL FOOTAGE|filmed as it is/.test(html));
+  }
+  await reset(); await set('scenario=empty');
+  {
+    const html = await get('/');
+    check('no media at all: hero media and demo are hidden, nothing fake shown', !/pw-hero__panel/.test(html) && !/id="demo"/.test(html));
+  }
+
   /* ------------------------------------------------------------------ MOBILE NAV + SEARCH + FAQ */
   group('Mobile menu, search and FAQ');
   {

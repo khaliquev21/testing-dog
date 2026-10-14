@@ -1,3 +1,4 @@
+{%- assign steps_product = collections.all.products.first -%}
 <section class="pw-steps" data-section-id="{{ section.id }}">
   <div class="pw-steps__inner pw-container">
     <div class="pw-steps__head">
@@ -10,8 +11,13 @@
     <div class="pw-steps__grid">
       {%- for block in section.blocks -%}
         {%- liquid
+          assign step_fb = nil
+          if block.settings.product_media_position > 0 and steps_product != blank
+            assign fb_i = block.settings.product_media_position | minus: 1
+            assign step_fb = steps_product.media[fb_i]
+          endif
           assign has_step_media = false
-          if block.settings.image != blank or block.settings.video != blank or block.settings.video_url != blank
+          if step_fb or block.settings.image != blank or block.settings.video != blank or block.settings.video_url != blank
             assign has_step_media = true
           endif
           assign step_label = block.settings.image_alt | default: block.settings.title
@@ -35,6 +41,7 @@
             <div class="pw-step__media{% unless has_step_media %} is-empty{% endunless %}">
               {% render 'media-slot',
                 image: block.settings.image,
+                fallback_media: step_fb,
                 video: block.settings.video,
                 video_url: block.settings.video_url,
                 label: step_label,
@@ -78,6 +85,7 @@
         { "type": "video", "id": "video", "label": "Looping video (optional)", "info": "A short clip of the real brush. Loops silently with a play / pause button." },
         { "type": "text", "id": "video_url", "label": "Or direct MP4 / WebM link" },
         { "type": "text", "id": "image_alt", "label": "Description (alt text)" },
+        { "type": "range", "id": "product_media_position", "label": "Use product media number", "min": 0, "max": 12, "step": 1, "default": 0, "info": "Used only while no photo is chosen above. 1 = first item in the product's Media list. Choose one that truly shows this. 0 = off." },
         { "type": "text", "id": "title", "label": "Title", "default": "Brush" },
         { "type": "textarea", "id": "text", "label": "Text", "default": "Brush through your pet's coat to help lift loose fur." }
       ]

@@ -11,16 +11,35 @@
       assign card_url = routes.all_products_collection_url
     endif
   endif
+  assign product_videos = demo_product.media | where: 'media_type', 'video'
+  assign fb_video_1 = product_videos[0]
+  assign fb_video_2 = product_videos[1]
+  assign fb_image = nil
+  for m in demo_product.media
+    if m.media_type == 'image' and fb_image == nil
+      assign fb_image = m
+    endif
+  endfor
+  assign demo_video_1 = section.settings.video_1 | default: fb_video_1
+  assign demo_video_2 = section.settings.video_2 | default: fb_video_2
   assign has_video_1 = false
-  if section.settings.video_1 != blank or section.settings.video_1_url != blank
+  if section.settings.video_1 != blank or section.settings.video_1_url != blank or fb_video_1
     assign has_video_1 = true
   endif
   assign has_video_2 = false
-  if section.settings.video_2 != blank or section.settings.video_2_url != blank
+  if section.settings.video_2 != blank or section.settings.video_2_url != blank or fb_video_2
     assign has_video_2 = true
   endif
+  assign has_footage = false
+  if has_video_1 or has_video_2
+    assign has_footage = true
+  endif
+  assign image_only = false
+  if has_footage == false and fb_image
+    assign image_only = true
+  endif
   assign show_section = false
-  if has_video_1 or has_video_2 or request.design_mode
+  if has_video_1 or has_video_2 or image_only or request.design_mode
     assign show_section = true
   endif
 -%}
@@ -29,23 +48,24 @@
     <div class="pw-demo__inner pw-container">
       <div class="pw-demo__head">
         <div class="pw-demo__titles">
-          {%- if section.settings.eyebrow != blank -%}
+          {%- if section.settings.eyebrow != blank and image_only == false -%}
             <span class="pw-eyebrow pw-eyebrow--light">{{ section.settings.eyebrow }}</span>
           {%- endif -%}
           <h2 class="pw-demo__heading">{{ section.settings.heading }}</h2>
         </div>
-        {%- if section.settings.text != blank -%}
+        {%- if section.settings.text != blank and image_only == false -%}
           <p class="pw-demo__text">{{ section.settings.text }}</p>
         {%- endif -%}
       </div>
 
       <div class="pw-demo__grid">
-        {%- if has_video_1 or request.design_mode -%}
+        {%- if has_video_1 or image_only or request.design_mode -%}
         <div class="pw-demo__tile pw-demo__tile--main{% unless has_video_1 %} is-empty{% endunless %}">
           {% render 'media-slot',
-            video: section.settings.video_1,
+            video: demo_video_1,
             video_url: section.settings.video_1_url,
             image: section.settings.video_1_poster,
+            fallback_media: fb_image,
             label: section.settings.video_1_caption,
             video_size: 'lg',
             ph_kind: 'video',
@@ -64,7 +84,7 @@
           {%- if has_video_2 or request.design_mode -%}
           <div class="pw-demo__tile pw-demo__tile--small{% unless has_video_2 %} is-empty{% endunless %}">
             {% render 'media-slot',
-              video: section.settings.video_2,
+              video: demo_video_2,
               video_url: section.settings.video_2_url,
               image: section.settings.video_2_poster,
               label: section.settings.video_2_caption,

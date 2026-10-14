@@ -7,6 +7,7 @@
 
   Accepts:
   - image: image object (also used as the video poster)
+  - fallback_media: a product media item (from product.media) used only when no image or video is set here
   - video / video_url: see loop-video
   - label: accessible description / alt text fallback
   - fit: 'cover' (default) or 'contain'
@@ -37,6 +38,22 @@
     image
     | image_url: width: 1600
     | image_tag: widths: slot_widths, sizes: slot_sizes, loading: slot_loading, alt: slot_alt, class: slot_img_class
+  }}
+{%- elsif fallback_media and fallback_media.media_type == 'video' -%}
+  {% render 'loop-video',
+    video: fallback_media,
+    poster: fallback_media.preview_image,
+    label: label,
+    size: video_size,
+    class: 'pw-media__fill'
+  %}
+{%- elsif fallback_media -%}
+  {%- assign fb_alt = fallback_media.alt | default: label -%}
+  {%- assign slot_img_class = 'pw-media__img pw-fit--' | append: slot_fit -%}
+  {{
+    fallback_media
+    | image_url: width: 1600
+    | image_tag: widths: slot_widths, sizes: slot_sizes, loading: slot_loading, alt: fb_alt, class: slot_img_class
   }}
 {%- elsif request.design_mode -%}
   {% render 'placeholder-slot',

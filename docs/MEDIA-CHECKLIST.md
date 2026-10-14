@@ -79,3 +79,15 @@ MP4 and WebM loops are many times smaller than the same clip as a GIF, play smoo
 - The product gallery shows the Pawora paw mark with "Product images coming soon" until the product has media.
 
 Inside the theme editor every empty slot shows a dashed outline with the slot name (PHOTO 01 to PHOTO 08, VIDEO 01 and 02) so you can see where each file goes. Shoppers never see these.
+
+## Using the product's own Shopify media as a fallback
+
+Once the product has media in Shopify, the theme can use it without extra uploads. Nothing is guessed about which picture shows what.
+
+| Slot | Fallback behaviour |
+| --- | --- |
+| Home > Hero | Uses the product's **first media image** while no hero photo is chosen (set "Use product media number" to 0 to turn off). |
+| Home > Demo videos | Uses the product's own **video media** (first and second video) if no video is chosen. If the product has **no video**, it shows the product's first image with no play button, and hides the "real footage" wording. If there is no media at all the section is hidden. |
+| Intro photos, closing photo, feature cards, the three steps | Off by default. Each has **Use product media number** (1 = first item in the product's Media list). Set it only when that picture truly shows the feature or scene. |
+
+A photo or video you choose in the theme editor always wins over the fallback. Alt text comes from the section's description field, or from the alt text you set on the product media.

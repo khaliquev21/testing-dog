@@ -11,12 +11,22 @@
       assign cta_url = routes.all_products_collection_url
     endif
   endif
+  assign fallback_media = nil
+  if section.settings.product_media_position > 0 and intro_product != blank
+    assign fb_index = section.settings.product_media_position | minus: 1
+    assign fallback_media = intro_product.media[fb_index]
+  endif
+  assign fallback_media_2 = nil
+  if section.settings.product_media_position_2 > 0 and intro_product != blank
+    assign fb_index_2 = section.settings.product_media_position_2 | minus: 1
+    assign fallback_media_2 = intro_product.media[fb_index_2]
+  endif
   assign has_main = false
-  if section.settings.image != blank
+  if section.settings.image != blank or fallback_media
     assign has_main = true
   endif
   assign has_second = false
-  if section.settings.image_2 != blank
+  if section.settings.image_2 != blank or fallback_media_2
     assign has_second = true
   endif
   assign show_media = false
@@ -31,6 +41,7 @@
         <div class="pw-intro__main">
           {% render 'media-slot',
             image: section.settings.image,
+            fallback_media: fallback_media,
             label: section.settings.image_alt,
             fit: section.settings.image_fit,
             sizes: '(min-width: 990px) 560px, 100vw',
@@ -43,6 +54,7 @@
           <div class="pw-intro__inset">
             {% render 'media-slot',
               image: section.settings.image_2,
+              fallback_media: fallback_media_2,
               label: section.settings.image_2_alt,
               fit: 'cover',
               sizes: '230px',
@@ -120,6 +132,19 @@
       "info": "A genuine lifestyle photo, only if you have one. Hidden on mobile."
     },
     { "type": "text", "id": "image_2_alt", "label": "Small photo description (alt text)" },
+    { "type": "header", "content": "Fallback from your Shopify product media" },
+    {
+      "type": "range",
+      "id": "product_media_position",
+      "label": "Main photo: use product media number",
+      "min": 0, "max": 12, "step": 1, "default": 0,
+      "info": "Used only while no photo is chosen above. 1 = the first item in the product's Media list. Pick a number whose picture truly shows this feature. 0 = off."
+    },
+    {
+      "type": "range", "id": "product_media_position_2", "label": "Small photo: use product media number",
+      "min": 0, "max": 12, "step": 1, "default": 0,
+      "info": "Same idea for the small overlapping photo. 0 = off."
+    },
     { "type": "header", "content": "Text" },
     { "type": "text", "id": "eyebrow", "label": "Small heading", "default": "MEET THE BRUSH" },
     { "type": "text", "id": "heading", "label": "Heading", "default": "A Simpler Grooming Routine" },

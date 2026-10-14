@@ -179,14 +179,14 @@ function makeProduct() {
     : [mk(1001, 'Option A'), mk(1002, 'Option B'), mk(1003, 'Option C', { available: false })];
 
   let media = [];
-  if (state.scenario === 'media') {
+  if (['media', 'productmedia', 'imagesonly'].includes(state.scenario)) {
     media = [1, 2, 3, 4, 5, 6, 7, 8].map((n, i) => ({
       id: 7000 + n, media_type: 'image', alt: `Test fixture ${n}`, src: `/fixtures/fixture-${n}.png`, width: 1200, height: 1200,
       preview_image: img(n)
     }));
     const v = { id: 7100, ...videoObj('clip-a.webm', 1280, 720), alt: 'Test clip A' };
     const v2 = { id: 7101, ...videoObj('clip-b.webm', 720, 900), alt: 'Test clip B' };
-    media.push(v, v2);
+    if (state.scenario !== 'imagesonly') media.push(v, v2);
   }
   variants[0].featured_media = media[0] || null;
   if (state.variants > 1 && media.length > 3) variants[1].featured_media = media[3];
