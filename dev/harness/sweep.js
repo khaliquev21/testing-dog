@@ -6,7 +6,7 @@ const WIDTHS = [320, 360, 390, 414, 600, 768, 820, 1024, 1100, 1280, 1440, 1920]
 (async () => {
   const browser = await chromium.launch({ executablePath: process.env.CHROME_PATH || undefined, args: ['--no-sandbox'] });
   let bad = 0, n = 0;
-  for (const scenario of ['media', 'empty']) {
+  for (const scenario of ['media', 'empty', 'media&variants=2']) {
     await fetch(BASE + '/__reset'); await fetch(BASE + '/__set?scenario=' + scenario);
     for (const w of WIDTHS) {
       const ctx = await browser.newContext({ viewport: { width: w, height: 900 } });

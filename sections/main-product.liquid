@@ -30,10 +30,14 @@
     Bundle pricing, from real variant prices only (see snippets/variant-pricing.liquid).
   endcomment
   assign unit_price = 0
+  assign bundle_mode = false
   for v in product.variants
     assign v_units = v.title | replace: '-', ' ' | split: ' ' | first | plus: 0
     if v_units == 1 and unit_price == 0
       assign unit_price = v.price
+    endif
+    if v_units > 1
+      assign bundle_mode = true
     endif
   endfor
   if unit_price == 0
@@ -60,6 +64,7 @@
   endcapture
   assign cur_bits = cur_text | split: '|'
   assign cur_compare = cur_bits[1] | plus: 0
+  assign cur_units = cur_bits[0] | plus: 0
 
   assign low_stock_limit = section.settings.low_stock_threshold | default: 0
   assign stock_left = 0
@@ -213,7 +218,7 @@
         </ul>
       {%- endif -%}
 
-      <product-form class="pw-buy" data-max="{{ max_qty }}" data-form-id="{{ form_id }}">
+      <product-form class="pw-buy" data-max="{{ max_qty }}" data-form-id="{{ form_id }}"{% if bundle_mode %} data-bundle{% endif %}>
         {%- form 'product', product, id: form_id, class: 'pw-buy__form', novalidate: 'novalidate' -%}
           {%- if has_variants -%}
             <fieldset class="pw-variants">
@@ -240,7 +245,7 @@
                     endif
                   -%}
                   <label class="pw-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-soldout{% endunless %}{% if show_badge %} has-badge{% endif %}">
-                    <input class="pw-variant__input" type="radio" name="id" value="{{ variant.id }}" data-variant-input{% if variant == current_variant %} checked{% endif %}{% unless variant.available %} disabled{% endunless %}>
+                    <input class="pw-variant__input" type="radio" name="id" value="{{ variant.id }}" data-variant-input data-units="{{ card_bits[0] | plus: 0 }}"{% if variant == current_variant %} checked{% endif %}{% unless variant.available %} disabled{% endunless %}>
                     {%- if show_badge -%}
                       <span class="pw-variant__badge">{{ section.settings.badge_text }}</span>
                     {%- endif -%}
@@ -264,23 +269,36 @@
             <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
           {%- endif -%}
 
-          <label class="pw-buy__label" for="{{ qty_id }}">{{ 'product.quantity' | t }}</label>
+          {%- if bundle_mode -%}
+            <label class="pw-buy__label" for="{{ qty_id }}">{{ 'product.quantity_brushes' | t }}</label>
+          {%- else -%}
+            <label class="pw-buy__label" for="{{ qty_id }}">{{ 'product.quantity' | t }}</label>
+          {%- endif -%}
           <div class="pw-buy__row">
             <div class="pw-qty">
               <button type="button" class="pw-qty__btn" data-qty-minus aria-label="{{ 'accessibility.decrease_quantity' | t }}">
                 {% render 'icon', name: 'minus', size: 18, stroke: 2.2 %}
               </button>
-              <input
-                id="{{ qty_id }}"
-                class="pw-qty__input"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                name="quantity"
-                value="1"
-                data-qty-input
-                autocomplete="off"
-              >
+              {%- if bundle_mode -%}
+                {%- comment -%}
+                  Bundle mode: the box shows how many brushes the selected option contains. It is display only.
+                  The cart quantity is always 1 of the selected bundle variant, so Shopify's own variant price is charged.
+                {%- endcomment -%}
+                <input id="{{ qty_id }}" class="pw-qty__input" type="text" value="{{ cur_units }}" readonly data-qty-display aria-live="polite">
+                <input type="hidden" name="quantity" value="1" data-qty-input>
+              {%- else -%}
+                <input
+                  id="{{ qty_id }}"
+                  class="pw-qty__input"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
+                  name="quantity"
+                  value="1"
+                  data-qty-input
+                  autocomplete="off"
+                >
+              {%- endif -%}
               <button type="button" class="pw-qty__btn" data-qty-plus aria-label="{{ 'accessibility.increase_quantity' | t }}">
                 {% render 'icon', name: 'plus', size: 18, stroke: 2.2 %}
               </button>
@@ -300,6 +318,9 @@
                 {%- else -%}
                   {{ 'product.sold_out' | t }}
                 {%- endif -%}
+              </span>
+              <span class="pw-buy__price" data-add-price{% unless current_variant.available %} hidden{% endunless %}>
+                {%- if settings.show_currency_code -%}{{ current_variant.price | money_with_currency }}{%- else -%}{{ current_variant.price | money }}{%- endif -%}
               </span>
             </button>
           </div>

@@ -35,7 +35,9 @@ Your Store Launch connection had no store linked, so the price could not be set 
 
    What shoppers see: the 1 Pack shows ~~$49.98~~ $29.99 with "Save $19.99". The 2 Pack shows $49.99 with ~~$59.98~~ and "Save $9.99" and a "BEST VALUE" badge. The $59.98 is always 2 x the live 1 Pack price, and the saving is that minus the 2 Pack price. If you later change a price in Shopify, every number follows. If the 2 Pack ever costs the same as or more than two singles, the saving, badge and strikethrough disappear by themselves. A compare-at price shows only if Shopify has one that is higher than the selling price.
 
-   Because these are variants, **Shopify itself prices the cart and checkout**: the page only sends the chosen variant and quantity, so it cannot send a wrong price. The quantity stepper counts packs (2 of the 2 Pack = 4 brushes at $99.98). No discount code or app is needed.
+   Because these are variants, **Shopify itself prices the cart and checkout**: the page only sends the chosen variant, always with cart quantity 1, so it cannot send a wrong price. No discount code or app is needed.
+
+   **Quantity box:** when the product has a bundle, the box shows the number of **brushes** in the selected option (1 or 2) and follows the cards. Its minus and plus buttons only move between the real bundle sizes (1 and 2), so price and quantity can never disagree. Shoppers who want more can raise the quantity of the bundle in the cart (2 of the 2 Pack = 4 brushes at $99.98). The selected price also shows inside the Add to Cart button.
 5. **Save.**
 6. Check the currency: **Settings > Store details** (store currency) and **Settings > Markets**. The price displays in USD when the store currency is USD. The theme can append "USD" after prices (Theme settings > Product and pricing).
 

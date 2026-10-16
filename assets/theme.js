@@ -280,6 +280,9 @@
       this.sticky = document.querySelector('[data-sticky-bar]');
       this.hiddenId = this.querySelector('[data-variant-id]');
       this.max = parseInt(this.dataset.max, 10) || 10;
+      this.bundle = this.hasAttribute('data-bundle');
+      this.display = this.querySelector('[data-qty-display]');
+      this.addPrice = this.querySelector('[data-add-price]');
       this.busy = false;
       this.resetTimer = null;
 
@@ -292,9 +295,16 @@
 
       this.setQty(this.input ? this.input.value : 1);
 
-      if (this.minus) this.minus.addEventListener('click', function () { this.setQty(this.qty() - 1); }.bind(this));
-      if (this.plus) this.plus.addEventListener('click', function () { this.setQty(this.qty() + 1); }.bind(this));
-      if (this.input) {
+      if (this.bundle) {
+        // Quantity box = brushes in the selected bundle. Buttons only move between real bundle sizes.
+        if (this.minus) this.minus.addEventListener('click', function () { this.stepBundle(-1); }.bind(this));
+        if (this.plus) this.plus.addEventListener('click', function () { this.stepBundle(1); }.bind(this));
+        this.syncBundle();
+      } else {
+        if (this.minus) this.minus.addEventListener('click', function () { this.setQty(this.qty() - 1); }.bind(this));
+        if (this.plus) this.plus.addEventListener('click', function () { this.setQty(this.qty() + 1); }.bind(this));
+      }
+      if (this.input && !this.bundle) {
         this.input.addEventListener('change', function () { this.setQty(this.input.value); }.bind(this));
         this.input.addEventListener('input', function () {
           this.input.value = this.input.value.replace(/[^0-9]/g, '');
@@ -311,7 +321,35 @@
       return parseInt(this.input.value, 10) || 1;
     }
 
+    /* Available bundle options sorted by number of brushes: [{input, units}] */
+    bundleOptions() {
+      return this.variantInputs.filter(function (i) { return !i.disabled; }).map(function (i) {
+        return { input: i, units: parseInt(i.dataset.units, 10) || 1 };
+      }).sort(function (a, b) { return a.units - b.units; });
+    }
+
+    syncBundle() {
+      var checked = this.variantInputs.filter(function (i) { return i.checked; })[0];
+      if (!checked) return;
+      var units = parseInt(checked.dataset.units, 10) || 1;
+      var options = this.bundleOptions();
+      if (this.display) this.display.value = units;
+      if (this.input) this.input.value = 1; // always one of the selected bundle variant
+      if (this.minus) this.minus.disabled = !options.some(function (o) { return o.units < units; });
+      if (this.plus) this.plus.disabled = !options.some(function (o) { return o.units > units; });
+    }
+
+    stepBundle(direction) {
+      var current = parseInt((this.variantInputs.filter(function (i) { return i.checked; })[0] || {}).dataset.units, 10) || 1;
+      var options = this.bundleOptions().filter(function (o) { return direction > 0 ? o.units > current : o.units < current; });
+      if (!options.length) return;
+      var target = direction > 0 ? options[0] : options[options.length - 1];
+      target.input.checked = true;
+      target.input.dispatchEvent(new Event('change', { bubbles: true }));
+    }
+
     setQty(value) {
+      if (this.bundle) { this.resetLabel(); return; }
       var n = parseInt(value, 10);
       if (isNaN(n) || n < 1) n = 1;
       if (n > this.max) n = this.max;
@@ -361,7 +399,9 @@
       if (!variant) return;
 
       this.available = variant.available;
-      this.max = variant.max || this.max;
+      if (!this.bundle) this.max = variant.max || this.max;
+      if (this.bundle) this.syncBundle();
+      if (this.addPrice) { this.addPrice.textContent = variant.priceFormatted; this.addPrice.hidden = !variant.available; }
       this.submit.disabled = !variant.available;
       this.setQty(this.qty());
 
@@ -403,7 +443,8 @@
     onSubmit(event) {
       event.preventDefault();
       if (this.busy || !this.available) return;
-      this.setQty(this.input ? this.input.value : 1);
+      if (this.bundle) this.syncBundle(); // quantity is always 1 of the selected bundle variant
+      else this.setQty(this.input ? this.input.value : 1);
       this.clearError();
       this.busy = true;
       this.submit.setAttribute('aria-disabled', 'true');

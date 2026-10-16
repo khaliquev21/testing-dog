@@ -40,7 +40,8 @@
       "one": "Only {{ count }} left in stock",
       "other": "Only {{ count }} left in stock"
     },
-    "save": "Save {{ amount }}"
+    "save": "Save {{ amount }}",
+    "quantity_brushes": "Quantity (brushes)"
   },
   "cart": {
     "title": "Your bag",
