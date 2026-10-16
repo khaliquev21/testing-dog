@@ -7,7 +7,7 @@ All of this ran against the real theme files in this repository.
 | Check | Result |
 | --- | --- |
 | Shopify `theme-check` (Liquid syntax, schema, templates) | 43 theme files, **0 offenses** (preload-style hints disabled in `.theme-check.yml`) |
-| Behaviour tests in headless Chromium (`dev/harness/tests.js`) | **181 of 181 passed** |
+| Behaviour tests in headless Chromium (`dev/harness/tests.js`) | **185 of 185 passed** |
 | Extra checks (`extra-checks.js`) | Cart-as-page mode, fonts, no third-party requests, class coverage: all passed |
 | Responsive sweep (`sweep.js`) | **No horizontal scrolling** in 180 page/width combinations (320 px to 1920 px, 5 page types, with and without media, and with a 1 Pack / 2 Pack product) |
 | Colour audit (`audit.js`) | 26 distinct colour values, all warm hues. **0 green** in the source and **0 green in 22,737 computed colour values** across 20 page/viewport combinations |
@@ -52,7 +52,7 @@ npm install                # liquidjs, playwright-core, theme-check, axe-core, b
 sh make-fixtures.sh        # synthetic fixtures (needs ImageMagick and ffmpeg)
 ./restart.sh               # starts the mock Shopify on http://localhost:4177
 npm run lint               # Shopify theme-check
-npm test                   # 181 behaviour checks
+npm test                   # 185 behaviour checks
 npm run audit              # green, wording and accessibility audits
 npm run extra
 npm run sweep              # responsive overflow sweep

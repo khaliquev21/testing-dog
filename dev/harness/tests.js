@@ -513,6 +513,23 @@ async function newPage(browser, opts = {}) {
     check('no JS errors', page.errors.length === 0, page.errors.join('|'));
     await ctx.close();
   }
+  await reset(); await set('scenario=media&variants=2&compareAt=4998');
+  {
+    const { ctx, page } = await newPage(browser);
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const cards = page.locator('.pw-variant');
+    const c1 = await txt(cards.nth(0)); const c2 = await txt(cards.nth(1));
+    check('single card: "1 Pawora grooming brush", no bundle copy', /1 Pawora grooming brush\b(?!es)/.test(c1) && !/Keep a spare/.test(c1), c1);
+    check('two-pack card: "2 Pawora grooming brushes" and the supporting line', /2 Pawora grooming brushes/.test(c2) && /Keep a spare or groom more than one pet\./.test(c2), c2);
+    check('each card has a radio indicator, and only the selected one is filled', (await page.locator('.pw-variant__check').count()) === 2 && (await page.locator('.pw-variant.is-selected').count()) === 1);
+    const order = await page.evaluate(() => {
+      const pos = (sel) => document.querySelector(sel);
+      const before = (a, b) => !!(pos(a).compareDocumentPosition(pos(b)) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return { descToCards: before('.pw-product__desc', '.pw-variants'), cardsToQty: before('.pw-variants', '.pw-qty'), qtyToAdd: before('.pw-qty', '[data-add-to-cart]') };
+    });
+    check('placement: description, then bundle cards, then Quantity, then Add to Cart', order.descToCards && order.cardsToQty && order.qtyToAdd, JSON.stringify(order));
+    await ctx.close();
+  }
   // wrong submit prevention: the posted id/quantity always come from the selected card, quantity is always 1
   await reset(); await set('scenario=media&variants=2');
   {
@@ -543,7 +560,8 @@ async function newPage(browser, opts = {}) {
     const { ctx, page } = await newPage(browser, { viewport: vp, hasTouch: true });
     await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
     const geo = await page.evaluate(() => { const r = [...document.querySelectorAll('.pw-variant')].map((e) => e.getBoundingClientRect()); return { w: r.map((x) => Math.round(x.width)), sameRow: Math.abs(r[0].top - r[1].top) < 4, sw: document.documentElement.scrollWidth }; });
-    check(`${name}: both options sit side by side, equal width, no sideways scroll`, geo.sameRow && Math.abs(geo.w[0] - geo.w[1]) <= 2 && geo.sw <= vp.width, JSON.stringify(geo));
+    if (name === 'mobile') check('mobile: the two options stack full width, equal size, no sideways scroll', !geo.sameRow && geo.w[0] >= 340 && Math.abs(geo.w[0] - geo.w[1]) <= 2 && geo.sw <= vp.width, JSON.stringify(geo));
+    else check('tablet: both options sit side by side, equal width, no sideways scroll', geo.sameRow && Math.abs(geo.w[0] - geo.w[1]) <= 2 && geo.sw <= vp.width, JSON.stringify(geo));
     await page.tap('.pw-variant:has([value="1002"])'); await page.waitForTimeout(250);
     check(`${name}: tapping 2 Pack updates the price block`, (await txt(page.locator('[data-product-price]'))) === '$49.99 $59.98 Save $9.99');
     if (name === 'mobile') {

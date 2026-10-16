@@ -244,19 +244,28 @@
                       endif
                     endif
                   -%}
+                  {%- assign card_units = card_bits[0] | plus: 0 -%}
                   <label class="pw-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-soldout{% endunless %}{% if show_badge %} has-badge{% endif %}">
-                    <input class="pw-variant__input" type="radio" name="id" value="{{ variant.id }}" data-variant-input data-units="{{ card_bits[0] | plus: 0 }}"{% if variant == current_variant %} checked{% endif %}{% unless variant.available %} disabled{% endunless %}>
+                    <input class="pw-variant__input" type="radio" name="id" value="{{ variant.id }}" data-variant-input data-units="{{ card_units }}"{% if variant == current_variant %} checked{% endif %}{% unless variant.available %} disabled{% endunless %}>
                     {%- if show_badge -%}
                       <span class="pw-variant__badge">{{ section.settings.badge_text }}</span>
                     {%- endif -%}
-                    <span class="pw-variant__check" aria-hidden="true"></span>
-                    <span class="pw-variant__title">{{ variant.title }}</span>
+                    <span class="pw-variant__titlebar">
+                      <span class="pw-variant__check" aria-hidden="true"></span>
+                      <span class="pw-variant__title">{{ variant.title }}</span>
+                    </span>
+                    {%- if bundle_mode -%}
+                      <span class="pw-variant__units">{{ 'product.bundle_units' | t: count: card_units, brand: brand }}</span>
+                    {%- endif -%}
                     <span class="pw-variant__price">
                       {%- if settings.show_currency_code -%}{{ variant.price | money_with_currency }}{%- else -%}{{ variant.price | money }}{%- endif -%}
                     </span>
                     {%- if card_save > 0 -%}
                       <span class="pw-variant__was"><s>{{ card_compare | money }}</s></span>
                       <span class="pw-variant__save">{{ 'product.save' | t: amount: card_save_amount }}</span>
+                    {%- endif -%}
+                    {%- if bundle_mode and card_units > 1 and section.settings.bundle_copy != blank -%}
+                      <span class="pw-variant__copy">{{ section.settings.bundle_copy }}</span>
                     {%- endif -%}
                     {%- unless variant.available -%}
                       <span class="pw-variant__note">{{ 'product.sold_out' | t }}</span>
@@ -380,105 +389,7 @@
       {%- if info_blocks.size > 0 -%}
         <info-accordion class="pw-inforows">
           {%- for block in info_blocks -%}
-            {%- liquid
-              assign acc_id = 'Acc-' | append: section.id | append: '-' | append: forloop.index
-              assign policy_body = ''
-              assign policy_url = block.settings.link
-              if block.settings.policy == 'shipping' and shop.shipping_policy
-                assign policy_body = shop.shipping_policy.body
-                if policy_url == blank
-                  assign policy_url = shop.shipping_policy.url
-                endif
-              elsif block.settings.policy == 'refund' and shop.refund_policy
-                assign policy_body = shop.refund_policy.body
-                if policy_url == blank
-                  assign policy_url = shop.refund_policy.url
-                endif
-              endif
-              assign contact_email = block.settings.email
-              if block.settings.kind == 'support' and contact_email == blank
-                assign contact_email = shop.email
-              endif
-            -%}
-            <div class="pw-acc" data-acc {{ block.shopify_attributes }}>
-              <h3 class="pw-acc__heading">
-                <button type="button" class="pw-acc__trigger" id="{{ acc_id }}-trigger" aria-expanded="false" aria-controls="{{ acc_id }}-panel" data-acc-trigger>
-                  {% render 'icon', name: block.settings.icon, size: 22, stroke: 1.8, class: 'pw-acc__icon' %}
-                  <span class="pw-acc__label">
-                    <span class="pw-acc__title">{{ block.settings.title }}</span>
-                    {%- if block.settings.text != blank -%}
-                      <span class="pw-acc__summary">{{ block.settings.text }}</span>
-                    {%- endif -%}
-                  </span>
-                  <span class="pw-acc__chevron">{% render 'icon', name: 'chevron-down', size: 18, stroke: 2.2 %}</span>
-                </button>
-              </h3>
-              <div class="pw-acc__panel" id="{{ acc_id }}-panel" role="region" aria-labelledby="{{ acc_id }}-trigger" data-acc-panel>
-                <div class="pw-acc__clip">
-                  <div class="pw-acc__body">
-                    {%- if block.settings.intro != blank -%}
-                      <p class="pw-acc__intro">{{ block.settings.intro }}</p>
-                    {%- endif -%}
-
-                    {%- for n in (1..4) -%}
-                      {%- liquid
-                        assign l_key = 'item_' | append: n | append: '_label'
-                        assign t_key = 'item_' | append: n | append: '_text'
-                        assign item_label = block.settings[l_key]
-                        assign item_text = block.settings[t_key]
-                      -%}
-                      {%- if item_text != blank -%}
-                        <div class="pw-acc__item">
-                          {%- if item_label != blank -%}<h4 class="pw-acc__item-title">{{ item_label }}</h4>{%- endif -%}
-                          <div class="pw-acc__item-text rte">{{ item_text | newline_to_br }}</div>
-                        </div>
-                      {%- elsif request.design_mode and item_label != blank -%}
-                        <div class="pw-acc__item pw-acc__item--todo">
-                          <h4 class="pw-acc__item-title">{{ item_label }}</h4>
-                          <p class="pw-acc__todo">Not set yet. Add this detail in the theme editor. It is hidden from shoppers until you do.</p>
-                        </div>
-                      {%- endif -%}
-                    {%- endfor -%}
-
-                    {%- if contact_email != blank or block.settings.phone != blank -%}
-                      <ul class="pw-acc__contact">
-                        {%- if contact_email != blank -%}
-                          <li><span class="pw-acc__contact-label">Email</span><a href="mailto:{{ contact_email }}">{{ contact_email }}</a></li>
-                        {%- endif -%}
-                        {%- if block.settings.phone != blank -%}
-                          <li><span class="pw-acc__contact-label">Phone</span><a href="tel:{{ block.settings.phone | remove: ' ' }}">{{ block.settings.phone }}</a></li>
-                        {%- endif -%}
-                        {%- if block.settings.hours != blank -%}
-                          <li><span class="pw-acc__contact-label">Hours</span><span>{{ block.settings.hours }}</span></li>
-                        {%- endif -%}
-                      </ul>
-                    {%- elsif request.design_mode and block.settings.kind == 'support' -%}
-                      <p class="pw-acc__todo">No support email or phone set. Add one in the theme editor, or set the store email in Shopify (Settings > Store details).</p>
-                    {%- endif -%}
-
-                    {%- if policy_body != blank -%}
-                      <div class="pw-acc__policy">
-                        <h4 class="pw-acc__item-title">{{ block.settings.policy_heading | default: 'Our policy' }}</h4>
-                        <div class="pw-acc__policy-text rte">{{ policy_body }}</div>
-                      </div>
-                    {%- elsif block.settings.policy != 'none' and request.design_mode -%}
-                      <p class="pw-acc__todo">Your Shopify {{ block.settings.policy }} policy is empty. Add it under Settings > Policies and it will appear here automatically.</p>
-                    {%- endif -%}
-
-                    {%- if block.settings.note != blank -%}
-                      <p class="pw-acc__note">{{ block.settings.note }}</p>
-                    {%- endif -%}
-
-                    {%- if policy_url != blank -%}
-                      <a class="pw-acc__link" href="{{ policy_url }}">
-                        {{ block.settings.link_label | default: 'Read more' }}
-                        {% render 'icon', name: 'arrow-right', size: 16, stroke: 2.2 %}
-                      </a>
-                    {%- endif -%}
-                  </div>
-                </div>
-              </div>
-            </div>
+            {% render 'info-accordion-row', block: block, section_id: section.id, index: forloop.index %}
           {%- endfor -%}
         </info-accordion>
       {%- endif -%}
@@ -535,6 +446,7 @@
       "info": "Leave empty to automatically badge the bundle with the biggest real saving."
     },
     { "type": "text", "id": "badge_text", "label": "Highlight badge text", "default": "BEST VALUE" },
+    { "type": "text", "id": "bundle_copy", "label": "Supporting line on multi-brush bundles", "default": "Keep a spare or groom more than one pet." },
     {
       "type": "range",
       "id": "low_stock_threshold",

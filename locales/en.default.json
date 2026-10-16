@@ -41,7 +41,11 @@
       "other": "Only {{ count }} left in stock"
     },
     "save": "Save {{ amount }}",
-    "quantity_brushes": "Quantity (brushes)"
+    "quantity_brushes": "Quantity (brushes)",
+    "bundle_units": {
+      "one": "{{ count }} {{ brand }} grooming brush",
+      "other": "{{ count }} {{ brand }} grooming brushes"
+    }
   },
   "cart": {
     "title": "Your bag",

@@ -26,12 +26,14 @@ Your Store Launch connection had no store linked, so the price could not be set 
 1. **Products** > open the brush (create it first if it does not exist: **Add product**).
 2. **Title:** `Self-Cleaning Pet Grooming Brush` (the theme shows the product title exactly as typed here).
 3. **Pricing > Price:** `29.99`. Leave **Compare-at price** empty. The theme hides compare-at prices by default, so there is one standard price.
-4. **Bundle (1 brush or 2 brushes):** the page reads real Shopify variants, so set the product up like this:
-   - Add one option named `Pack size` with two values: `1 Pack` and `2 Pack`. **The name must start with the number** (the theme reads it).
-   - `1 Pack`: **Price 29.99**, **Compare-at price 49.98**.
-   - `2 Pack`: **Price 49.99**. Leave its compare-at empty (the theme calculates the comparison itself).
-   - Set inventory for each variant. For the 2 Pack, one unit of stock means one two-pack.
-   - **Save.**
+4. **Bundle (1 brush or 2 brushes).** If your product currently has a single price and no options (so the page shows no bundle cards), convert it like this:
+   1. Open the product, scroll to **Variants**, and choose **Add options like size or color**.
+   2. Option name: `Pack size`. Values: `1 Pack`, then `2 Pack`. The value names must **start with the number** (the theme reads it).
+   3. Set the prices in the variant table: `1 Pack` **Price 29.99**, **Compare-at price 49.98**; `2 Pack` **Price 49.99**, Compare-at empty.
+   4. Set inventory for both variants (the 2 Pack counts two-packs) and **Save**.
+   5. Reload the product page. The cards, the "BEST VALUE" label and the supporting line appear by themselves.
+
+   Why variants and not a discount: Shopify cannot tell a theme about an automatic discount before checkout, so a theme can only *display* a discount price it cannot guarantee. A real variant at $49.99 is charged at $49.99 by Shopify. The card wording, the badge and the line "Keep a spare or groom more than one pet." are editable under Customize > Product page > Product > Bundle / option cards.
 
    What shoppers see: the 1 Pack shows ~~$49.98~~ $29.99 with "Save $19.99". The 2 Pack shows $49.99 with ~~$59.98~~ and "Save $9.99" and a "BEST VALUE" badge. The $59.98 is always 2 x the live 1 Pack price, and the saving is that minus the 2 Pack price. If you later change a price in Shopify, every number follows. If the 2 Pack ever costs the same as or more than two singles, the saving, badge and strikethrough disappear by themselves. A compare-at price shows only if Shopify has one that is higher than the selling price.
 
