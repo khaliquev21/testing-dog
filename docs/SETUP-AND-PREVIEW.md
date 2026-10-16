@@ -72,6 +72,17 @@ The three rows under the buy box open into detail panels. What each panel shows:
 - **Support:** add an email, phone and hours in the row, or leave the email empty to use your Shopify store email (**Settings > Store details**). Only add hours you actually keep.
 - Without JavaScript all panels are simply open and readable.
 
+### Customer reviews box (under Add to Cart)
+
+A compact box, "Pet Parents Love Pawora", sits between Add to Cart and the benefit cards. **It shows only reviews you enter, and nothing is invented.**
+
+- **Add reviews:** Customize > Product page > Product > **Add block > Customer review** (up to two). For each: the customer's star rating (0 hides stars), the review text (one or two sentences), the name to display, the customer's own photo (optional), and **Verified Buyer** (tick only if you confirmed the purchase). Use only real reviews, with permission to show the name and photo, and never stock or AI pictures.
+- **Two reviews:** they alternate with a soft fade every 10 seconds, with small dots and previous/next buttons. A manual change restarts the 10 seconds. It pauses on hover, keyboard focus and when the tab is hidden, and does not auto-rotate for visitors who prefer reduced motion.
+- **One review:** shown without rotation or controls.
+- **No photo:** no picture is shown at all (nothing stands in for the customer).
+- **No reviews yet:** the box says "Be the first to review Pawora." You can add a "Write a review" link in the same section settings, or turn the line off.
+- **Review apps:** no review app was found in this theme, so there is nothing to read reviews from automatically. If you install one (Judge.me, Loox, Yotpo and others each need their own setup), tell me which and I can connect its data; the existing larger Reviews section also accepts the app's block.
+
 ## 5. Preview checklist
 
 1. **Product page:** the gallery changes with thumbnails and arrows, videos loop with a pause button, the price reads $29.99.

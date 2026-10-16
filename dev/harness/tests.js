@@ -574,6 +574,138 @@ async function newPage(browser, opts = {}) {
   }
   await reset(); await set('scenario=media');
 
+  group('Compact customer review rotator');
+  await reset(); await set('scenario=media&reviews=2');
+  {
+    const { ctx, page } = await newPage(browser);
+    await page.clock.install();
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const active = () => page.locator('.pw-review.is-active [class*="pw-review__text"]').innerText();
+    const box = page.locator('.pw-reviewbox');
+    check('heading "Pet Parents Love Pawora"', /Pet Parents Love Pawora/.test(await txt(box.locator('.pw-reviewbox__title'))));
+    check('exactly one review visible at a time', (await page.locator('.pw-review').evaluateAll((els) => els.filter((e) => getComputedStyle(e).visibility === 'visible' && parseFloat(getComputedStyle(e).opacity) > 0.5).length)) === 1);
+    check('two indicator dots, previous and next controls, all labelled', (await page.locator('[data-review-dot]').count()) === 2 && /Previous review/.test(await page.locator('[data-review-prev]').getAttribute('aria-label')) && /Next review/.test(await page.locator('[data-review-next]').getAttribute('aria-label')) && /Show review 1 of 2/.test(await page.locator('[data-review-dot]').first().getAttribute('aria-label')));
+    const photo = await page.locator('.pw-review.is-active .pw-review__photo').evaluate((i) => { const r = i.getBoundingClientRect(); const t = i.parentElement.querySelector('.pw-review__body').getBoundingClientRect(); return { w: Math.round(r.width), h: Math.round(r.height), left: r.right <= t.left + 1, radius: getComputedStyle(i).borderRadius }; });
+    check('photo is a small rounded square (48-52px) on the left of the text', photo.w >= 48 && photo.w <= 52 && photo.w === photo.h && photo.left && parseInt(photo.radius, 10) > 0, JSON.stringify(photo));
+    check('star rating and Verified Buyer shown only where set', /Rated 5 out of 5/.test(await page.locator('.pw-review').nth(0).innerHTML()) && /Verified Buyer/.test(await txt(page.locator('.pw-review').nth(0))) && !/Verified Buyer/.test(await txt(page.locator('.pw-review').nth(1))));
+    check('review without a photo shows no picture at all (nothing implied)', (await page.locator('.pw-review').nth(1).locator('img').count()) === 0);
+    const trans = await page.locator('.pw-review').first().evaluate((e) => ({ t: getComputedStyle(e).transitionProperty, d: getComputedStyle(e).transitionDuration, tr: getComputedStyle(e).transform }));
+    check('crossfade only (opacity, no sliding transform)', /opacity/.test(trans.t) && !/transform/.test(trans.t) && trans.tr === 'none', JSON.stringify(trans));
+    const geo0 = await page.evaluate(() => ({ box: document.querySelector('.pw-reviewbox').getBoundingClientRect().height, below: document.querySelector('.pw-perks').getBoundingClientRect().top + window.scrollY }));
+    check('first review is shown first', /REVIEW ONE/.test(await active()));
+    await page.clock.runFor(8000);
+    check('no change before 10 seconds', /REVIEW ONE/.test(await active()));
+    await page.clock.runFor(3000);
+    check('switches to review 2 at 10 seconds', /REVIEW TWO/.test(await active()));
+    const geo1 = await page.evaluate(() => ({ box: document.querySelector('.pw-reviewbox').getBoundingClientRect().height, below: document.querySelector('.pw-perks').getBoundingClientRect().top + window.scrollY }));
+    check('no layout shift: box height and everything below stay put', Math.abs(geo0.box - geo1.box) < 0.5 && Math.abs(geo0.below - geo1.below) < 0.5, JSON.stringify([geo0, geo1]));
+    check('dots follow the active review', (await page.locator('[data-review-dot].is-active').getAttribute('data-index')) === '1');
+    await page.clock.runFor(10000);
+    check('loops back to review 1 after another 10 seconds', /REVIEW ONE/.test(await active()));
+    check('automatic changes are not announced (aria-live off)', (await page.locator('[data-review-stage]').getAttribute('aria-live')) === 'off');
+
+    // manual control resets the clock
+    await page.clock.runFor(7000);
+    await page.click('[data-review-next]');
+    check('next button changes the review', /REVIEW TWO/.test(await active()));
+    check('manual change is announced politely to screen readers', (await page.locator('[data-review-stage]').getAttribute('aria-live')) === 'polite');
+    await page.mouse.move(5, 5); await page.evaluate(() => document.activeElement.blur());
+    await page.clock.runFor(9000);
+    check('after a manual change the 10 s clock restarted (still same review 9 s later)', /REVIEW TWO/.test(await active()));
+    await page.clock.runFor(1500);
+    check('and it moves on 10 s after the manual change', /REVIEW ONE/.test(await active()));
+    await page.click('[data-review-dot][data-index="1"]');
+    check('dots switch reviews', /REVIEW TWO/.test(await active()) && (await page.locator('[data-review-dot][aria-current="true"]').getAttribute('data-index')) === '1');
+    await page.click('[data-review-prev]');
+    check('previous button wraps around', /REVIEW ONE/.test(await active()));
+
+    // keyboard
+    await page.locator('[data-review-next]').focus(); await page.keyboard.press('Enter');
+    check('Enter on the next button works', /REVIEW TWO/.test(await active()));
+    await page.keyboard.press('Space');
+    check('Space on the next button works', /REVIEW ONE/.test(await active()));
+
+    // hover pauses
+    await page.evaluate(() => document.activeElement.blur());
+    await page.hover('.pw-reviewbox');
+    const before = await active();
+    await page.clock.runFor(35000);
+    check('hover pauses rotation', (await active()) === before);
+    await page.mouse.move(5, 5);
+    await page.clock.runFor(9000);
+    check('leaving restarts a full 10 s wait (no instant jump)', (await active()) === before);
+    await page.clock.runFor(1500);
+    check('then it continues', (await active()) !== before);
+
+    // focus pauses
+    await page.locator('[data-review-dot]').first().focus();
+    const b2 = await active();
+    await page.clock.runFor(35000);
+    check('keyboard focus inside pauses rotation', (await active()) === b2);
+    await page.evaluate(() => document.activeElement.blur());
+    await page.clock.runFor(10500);
+    check('blur resumes rotation', (await active()) !== b2);
+
+    // hidden tab
+    await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => true }); document.dispatchEvent(new Event('visibilitychange')); });
+    const b3 = await active();
+    await page.clock.runFor(35000);
+    check('no rotation while the tab is hidden', (await active()) === b3);
+    await page.evaluate(() => { Object.defineProperty(document, 'hidden', { configurable: true, get: () => false }); document.dispatchEvent(new Event('visibilitychange')); });
+    await page.clock.runFor(10500);
+    check('rotation resumes when the tab is visible again', (await active()) !== b3);
+
+    // timers: no duplicates after remove / re-add
+    const idx = () => page.locator('[data-review-dot].is-active').getAttribute('data-index');
+    await page.evaluate(() => { const el = document.querySelector('review-rotator'); window.__rr = el; el.remove(); });
+    await page.clock.runFor(30000);
+    await page.evaluate(() => { document.querySelector('.pw-product__info').insertBefore(window.__rr, document.querySelector('.pw-perks')); });
+    const startIdx = await idx();
+    await page.clock.runFor(10500);
+    const stepped = ((parseInt(await idx(), 10) - parseInt(startIdx, 10)) + 2) % 2;
+    check('removing then re-adding the component leaves exactly one timer (one step per 10 s)', stepped === 1, `${startIdx}->${await idx()}`);
+    const i0 = parseInt(await idx(), 10);
+    await page.click('[data-review-next]');
+    check('after re-adding, one click still moves exactly one review (no duplicate listeners)', (parseInt(await idx(), 10) - i0 + 2) % 2 === 1);
+    check('no JS errors', page.errors.length === 0, page.errors.join('|'));
+
+    const order = await page.evaluate(() => { const f = (s) => document.querySelector(s); const after = (a, b) => !!(f(a).compareDocumentPosition(f(b)) & Node.DOCUMENT_POSITION_FOLLOWING); return { addToReviews: after('[data-add-to-cart]', '.pw-reviewbox'), reviewsToPerks: after('.pw-reviewbox', '.pw-perks'), reviewsToInfo: after('.pw-reviewbox', '.pw-inforows') }; });
+    check('placement: below Add to Cart, above the benefit cards and policy rows', order.addToReviews && order.reviewsToPerks && order.reviewsToInfo, JSON.stringify(order));
+    await ctx.close();
+  }
+  {
+    const { ctx, page } = await newPage(browser, { reducedMotion: 'reduce' });
+    await page.clock.install();
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    await page.clock.runFor(35000);
+    check('reduced motion: no automatic rotation at all', /REVIEW ONE/.test(await page.locator('.pw-review.is-active .pw-review__text').innerText()));
+    const tr = await page.locator('.pw-review.is-active').evaluate((e) => getComputedStyle(e).transitionDuration);
+    check('reduced motion: no animated transition', /^0s/.test(tr), tr);
+    await page.click('[data-review-next]');
+    check('reduced motion: manual controls still work', /REVIEW TWO/.test(await page.locator('.pw-review.is-active .pw-review__text').innerText()));
+    await ctx.close();
+  }
+  await set('reviews=1');
+  {
+    const html = await get(PRODUCT);
+    check('one genuine review: shown without dots, arrows or rotation', /pw-review\b/.test(html) && !/data-review-dot|data-review-next/.test(html));
+  }
+  await set('reviews=0');
+  {
+    const html = await get(PRODUCT);
+    const block = html.split('pw-reviewbox')[1] || '';
+    check('no reviews: only an honest "Be the first to review Pawora" line, no stars, names or counts', /Be the first to review Pawora/.test(html) && !/pw-review__stars|Verified Buyer|pw-review__name/.test(html));
+  }
+  for (const [name, vp] of [['mobile', { width: 390, height: 844 }], ['small mobile', { width: 320, height: 640 }]]) {
+    await set('reviews=2');
+    const { ctx, page } = await newPage(browser, { viewport: vp });
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const m = await page.evaluate(() => { const b = document.querySelector('.pw-reviewbox').getBoundingClientRect(); const i = document.querySelector('.pw-review.is-active .pw-review__photo').getBoundingClientRect(); return { boxW: Math.round(b.width), boxH: Math.round(b.height), photo: Math.round(i.width), sw: document.documentElement.scrollWidth }; });
+    check(`${name}: compact box, 52px photo, no sideways scroll`, m.photo <= 52 && m.boxH < 260 && m.sw <= vp.width, JSON.stringify(m));
+    await ctx.close();
+  }
+  await reset(); await set('scenario=media');
+
   /* ------------------------------------------------------------------ MOBILE NAV + SEARCH + FAQ */
   group('Mobile menu, search and FAQ');
   {

@@ -168,7 +168,7 @@ const videoObj = (file, w, h, mimeType = 'video/webm') => ({
   preview_image: img(1)
 });
 
-const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '', policies: false, bundlePrice: 4999, templates: 'pristine' };
+const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '', policies: false, bundlePrice: 4999, templates: 'pristine', reviews: 0 };
 
 function makeProduct() {
   const mk = (id, title, options = {}) => ({
@@ -251,6 +251,14 @@ async function renderSection(globals, id, type, data = {}) {
     counters[b.type]++;
     return { id: bid, type: b.type, settings: resolveSettings(def.settings, { ...(b.settings || {}), ...(bov || {}) }), shopify_attributes: '' };
   });
+  if (type === 'main-product' && state.reviews > 0) {
+    // synthetic review blocks for tests only (clearly labelled fixtures, never shipped)
+    const fixtures = [
+      { id: 'rev1', type: 'review', shopify_attributes: '', settings: { rating: 5, text: 'TEST REVIEW ONE (fixture text, not a real customer).', name: 'Test Person A.', verified: true, photo: img(7), photo_alt: 'Test photo one' } },
+      { id: 'rev2', type: 'review', shopify_attributes: '', settings: { rating: 4, text: 'TEST REVIEW TWO (fixture text, not a real customer). This one is a little longer than the first so the box height has to cope with different lengths without moving anything.', name: 'Test Person B.', verified: false, photo: null, photo_alt: '' } }
+    ];
+    blocks.push(...fixtures.slice(0, state.reviews));
+  }
   const section = { id, settings, blocks, block_order: blockOrder, type };
   const html = await engine.render(tpls, { section }, { globals });
   const tag = schema && schema.tag === 'div' ? 'div' : 'div';
@@ -423,12 +431,13 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* test controls */
-    if (p === '/__reset') { Object.assign(state, { templates: 'pristine', bundlePrice: 4999, policies: false, cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1 }); return send(res, 200, 'reset', 'text/plain'); }
+    if (p === '/__reset') { Object.assign(state, { reviews: 0, templates: 'pristine', bundlePrice: 4999, policies: false, cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1 }); return send(res, 200, 'reset', 'text/plain'); }
     if (p === '/__set') {
       for (const [k, v] of url.searchParams) {
         if (['price', 'stock', 'maxQty', 'variants', 'bundlePrice'].includes(k)) state[k] = parseInt(v, 10);
         else if (k === 'policies') state.policies = v === '1';
         else if (k === 'templates') state.templates = v;
+        else if (k === 'reviews') state.reviews = parseInt(v, 10);
         else if (k === 'compareAt') state.compareAt = v ? parseInt(v, 10) : null;
         else if (k === 'scenario') state.scenario = v;
         else if (k === 'cartType') state.cartType = v || null;

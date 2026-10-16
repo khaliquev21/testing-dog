@@ -372,6 +372,14 @@
         {%- endif -%}
       </product-form>
 
+      {%- assign review_blocks = section.blocks | where: 'type', 'review' -%}
+      {% render 'review-rotator',
+        reviews: review_blocks,
+        heading: section.settings.reviews_heading,
+        link: section.settings.review_link,
+        show_placeholder: section.settings.show_review_placeholder
+      %}
+
       {%- assign perk_blocks = section.blocks | where: 'type', 'perk' -%}
       {%- if perk_blocks.size > 0 -%}
         <ul class="pw-perks">
@@ -457,6 +465,21 @@
       "default": 5,
       "info": "Uses the real inventory count when Shopify tracks it. Set to 0 to turn off."
     },
+    { "type": "header", "content": "Customer reviews (compact)" },
+    { "type": "text", "id": "reviews_heading", "label": "Heading", "default": "Pet Parents Love Pawora" },
+    {
+      "type": "url",
+      "id": "review_link",
+      "label": "\"Write a review\" link (optional)",
+      "info": "Only used in the empty state, for example the review form of your reviews app."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_review_placeholder",
+      "label": "Show \"Be the first to review\" until a review is added",
+      "default": true,
+      "info": "Add up to two Customer review blocks below to replace it. Nothing is invented: with no reviews you only see this line."
+    },
     { "type": "header", "content": "Text" },
     {
       "type": "text",
@@ -495,6 +518,20 @@
       "limit": 6,
       "settings": [
         { "type": "text", "id": "text", "label": "Text", "default": "Helps remove loose fur from short and long coats" }
+      ]
+    },
+    {
+      "type": "review",
+      "name": "Customer review",
+      "limit": 2,
+      "settings": [
+        { "type": "paragraph", "content": "Only enter reviews written by real customers, with their permission to show the name and photo. Never use stock or AI pictures." },
+        { "type": "range", "id": "rating", "label": "Star rating the customer gave", "min": 0, "max": 5, "step": 1, "default": 0, "info": "0 hides the stars. Enter exactly what the customer rated." },
+        { "type": "textarea", "id": "text", "label": "Review (one or two sentences)" },
+        { "type": "text", "id": "name", "label": "Name to display", "info": "For example \"Sam R.\". Leave empty to show no name." },
+        { "type": "checkbox", "id": "verified", "label": "Verified Buyer", "default": false, "info": "Tick only if you have confirmed this person bought the product." },
+        { "type": "image_picker", "id": "photo", "label": "Customer's own photo (optional)", "info": "A real photo sent by this customer. Leave empty if there is none: no picture is shown." },
+        { "type": "text", "id": "photo_alt", "label": "Photo description (alt text)" }
       ]
     },
     {

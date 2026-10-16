@@ -1,0 +1,82 @@
+{%- comment -%}
+  Compact customer review rotator for the product page.
+  Shows genuine reviews entered as "Customer review" blocks in the theme editor. Nothing is invented:
+  no reviews means a plain "be the first" line, one review means no rotation.
+
+  Accepts:
+  - reviews: array of review blocks (max 2 used)
+  - heading: heading text
+  - link: optional URL for the "write a review" link
+  - show_placeholder: whether to show the empty-state line
+  - interval: milliseconds between automatic changes
+{%- endcomment -%}
+{%- assign shown = reviews | slice: 0, 2 -%}
+{%- assign count = shown.size -%}
+{%- if count == 0 -%}
+  {%- if show_placeholder -%}
+    <div class="pw-reviewbox pw-reviewbox--empty">
+      <h3 class="pw-reviewbox__title">{{ heading }}</h3>
+      <p class="pw-reviewbox__empty">
+        {{ 'product.reviews_empty' | t: brand: settings.brand_name }}
+        {%- if link != blank %} <a href="{{ link }}">{{ 'product.reviews_write' | t }}</a>{% endif -%}
+      </p>
+    </div>
+  {%- endif -%}
+{%- else -%}
+  <review-rotator class="pw-reviewbox" data-interval="{{ interval | default: 10000 }}" data-count="{{ count }}" role="region" aria-roledescription="carousel" aria-label="{{ heading | escape }}">
+    <div class="pw-reviewbox__head">
+      <h3 class="pw-reviewbox__title">{{ heading }}</h3>
+      {%- if count > 1 -%}
+        <div class="pw-reviewbox__controls">
+          <button type="button" class="pw-reviewbox__arrow" data-review-prev aria-label="{{ 'accessibility.previous_review' | t }}">
+            {% render 'icon', name: 'chevron-left', size: 14, stroke: 2.4 %}
+          </button>
+          <span class="pw-reviewbox__dots">
+            {%- for review in shown -%}
+              <button type="button" class="pw-reviewbox__dot{% if forloop.first %} is-active{% endif %}" data-review-dot data-index="{{ forloop.index0 }}" aria-label="{{ 'accessibility.show_review' | t: position: forloop.index, total: count }}"{% if forloop.first %} aria-current="true"{% endif %}></button>
+            {%- endfor -%}
+          </span>
+          <button type="button" class="pw-reviewbox__arrow" data-review-next aria-label="{{ 'accessibility.next_review' | t }}">
+            {% render 'icon', name: 'chevron-right', size: 14, stroke: 2.4 %}
+          </button>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="pw-reviewbox__stage" data-review-stage aria-live="off">
+      {%- for review in shown -%}
+        <figure class="pw-review{% if forloop.first %} is-active{% endif %}{% if review.settings.photo == blank %} pw-review--nophoto{% endif %}" data-review {{ review.shopify_attributes }}{% unless forloop.first %} aria-hidden="true"{% endunless %}>
+          {%- if review.settings.photo != blank -%}
+            {{
+              review.settings.photo
+              | image_url: width: 104, height: 104
+              | image_tag: width: 52, height: 52, loading: 'lazy', alt: review.settings.photo_alt, class: 'pw-review__photo'
+            }}
+          {%- endif -%}
+          <div class="pw-review__body">
+            <div class="pw-review__meta">
+              {%- if review.settings.rating > 0 -%}
+                <span class="pw-review__stars" role="img" aria-label="{{ 'product.review_rating' | t: rating: review.settings.rating }}">
+                  {%- for i in (1..5) -%}
+                    {%- if i <= review.settings.rating -%}
+                      {% render 'icon', name: 'star', size: 14, class: 'pw-review__star' %}
+                    {%- else -%}
+                      {% render 'icon', name: 'star', size: 14, class: 'pw-review__star is-empty' %}
+                    {%- endif -%}
+                  {%- endfor -%}
+                </span>
+              {%- endif -%}
+              {%- if review.settings.verified -%}
+                <span class="pw-review__verified">{% render 'icon', name: 'check', size: 12, stroke: 3 %}{{ 'product.verified_buyer' | t }}</span>
+              {%- endif -%}
+            </div>
+            <blockquote class="pw-review__text">{{ review.settings.text }}</blockquote>
+            {%- if review.settings.name != blank -%}
+              <figcaption class="pw-review__name">{{ review.settings.name }}</figcaption>
+            {%- endif -%}
+          </div>
+        </figure>
+      {%- endfor -%}
+    </div>
+  </review-rotator>
+{%- endif -%}
