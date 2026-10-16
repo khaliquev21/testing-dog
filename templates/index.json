@@ -1,62 +1,200 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "hero": {
       "type": "hero",
       "blocks": {
-        "trust_1": { "type": "trust", "settings": { "text": "Self-cleaning" } },
-        "trust_2": { "type": "trust", "settings": { "text": "IPX7 waterproof" } },
-        "trust_3": { "type": "trust", "settings": { "text": "Includes 1 shampoo" } }
+        "trust_1": {
+          "type": "trust",
+          "settings": {
+            "text": "Self-cleaning"
+          }
+        },
+        "trust_2": {
+          "type": "trust",
+          "settings": {
+            "text": "IPX7 waterproof"
+          }
+        },
+        "trust_3": {
+          "type": "trust",
+          "settings": {
+            "text": "Includes 1 shampoo"
+          }
+        }
       },
-      "block_order": ["trust_1", "trust_2", "trust_3"],
-      "settings": {}
+      "block_order": [
+        "trust_1",
+        "trust_2",
+        "trust_3"
+      ],
+      "settings": {
+        "badge": "Steam mist brush for dogs & cats",
+        "heading_top": "Less Shedding.",
+        "heading_bottom": "More",
+        "heading_highlight": "Cuddles.",
+        "text": "Make grooming easier with a brush designed to help remove loose fur and keep your pet's coat looking its best.",
+        "button_label": "Shop the Brush",
+        "button_link": "",
+        "product": "",
+        "show_price": true,
+        "secondary_label": "See it in action",
+        "secondary_anchor": "demo",
+        "image_alt": "Pawora self-cleaning pet grooming brush",
+        "image_fit": "contain",
+        "product_media_position": 1,
+        "card_title": "For dogs & cats",
+        "card_text": "Short or long hair"
+      }
     },
     "benefits": {
       "type": "benefits",
       "blocks": {
         "benefit_1": {
           "type": "benefit",
-          "settings": { "icon": "fur", "title": "Helps Remove Loose Fur", "text": "Made for shedding and deshedding sessions on short or long coats." }
+          "settings": {
+            "icon": "fur",
+            "title": "Helps Remove Loose Fur",
+            "text": "Made for shedding and deshedding sessions on short or long coats."
+          }
         },
         "benefit_2": {
           "type": "benefit",
-          "settings": { "icon": "refresh", "title": "Self-Cleaning Design", "text": "Built so clearing collected fur from the brush is quick and simple." }
+          "settings": {
+            "icon": "refresh",
+            "title": "Self-Cleaning Design",
+            "text": "Built so clearing collected fur from the brush is quick and simple."
+          }
         },
         "benefit_3": {
           "type": "benefit",
-          "settings": { "icon": "mist", "title": "Steam Mist Brushing", "text": "A built-in mist function on a brush designed to be gentle on skin." }
+          "settings": {
+            "icon": "mist",
+            "title": "Steam Mist Brushing",
+            "text": "A built-in mist function on a brush designed to be gentle on skin."
+          }
         },
         "benefit_4": {
           "type": "benefit",
-          "settings": { "icon": "drop", "title": "IPX7 Waterproof", "text": "Rated IPX7 waterproof, so a little water is never a worry." }
+          "settings": {
+            "icon": "drop",
+            "title": "IPX7 Waterproof",
+            "text": "Rated IPX7 waterproof, so a little water is never a worry."
+          }
         }
       },
-      "block_order": ["benefit_1", "benefit_2", "benefit_3", "benefit_4"],
+      "block_order": [
+        "benefit_1",
+        "benefit_2",
+        "benefit_3",
+        "benefit_4"
+      ],
       "settings": {}
     },
     "demo": {
       "type": "video-showcase",
-      "settings": {}
+      "settings": {
+        "eyebrow": "REAL FOOTAGE",
+        "heading": "See It in Action",
+        "text": "The actual Pawora brush, filmed as it is — no renders, no staged effects.",
+        "video_1": "shopify://files/videos/snaptik_7600861967913438477_v3.mp4",
+        "video_1_url": "",
+        "video_1_caption": "The brush in use",
+        "video_2_url": "",
+        "video_2_caption": "The self-cleaning mechanism",
+        "card_title": "Brush, mist, done.",
+        "card_text": "One tool for shedding season, with a self-cleaning design for quicker clean-up afterwards.",
+        "card_button_label": "Shop the Brush",
+        "card_link": "",
+        "product": ""
+      }
     },
     "intro": {
       "type": "intro",
       "blocks": {
-        "point_1": { "type": "point", "settings": { "strong": "Helps remove loose fur", "text": "from short and long coats during shedding season." } },
-        "point_2": { "type": "point", "settings": { "strong": "Self-cleaning design", "text": "for quicker clean-up after every session." } },
-        "point_3": { "type": "point", "settings": { "strong": "IPX7 waterproof", "text": "and described as skin friendly." } }
+        "point_1": {
+          "type": "point",
+          "settings": {
+            "strong": "Helps remove loose fur",
+            "text": "from short and long coats during shedding season."
+          }
+        },
+        "point_2": {
+          "type": "point",
+          "settings": {
+            "strong": "Self-cleaning design",
+            "text": "for quicker clean-up after every session."
+          }
+        },
+        "point_3": {
+          "type": "point",
+          "settings": {
+            "strong": "IPX7 waterproof",
+            "text": "and described as skin friendly."
+          }
+        }
       },
-      "block_order": ["point_1", "point_2", "point_3"],
-      "settings": {}
+      "block_order": [
+        "point_1",
+        "point_2",
+        "point_3"
+      ],
+      "settings": {
+        "image": "shopify://shop_images/Gentle_Grooming_in_a_Cozy_Living_Room.png",
+        "image_alt": "Close-up of the Pawora brush head and bristles",
+        "image_fit": "cover",
+        "image_2": "shopify://shop_images/Happy_Corgi_Grooming_Moment.png",
+        "image_2_alt": "",
+        "product_media_position": 0,
+        "product_media_position_2": 0,
+        "eyebrow": "MEET THE BRUSH",
+        "heading": "A Simpler Grooming Routine",
+        "text": "The Pawora Self-Cleaning Pet Grooming Brush pairs a deshedding brush with a built-in steam mist. It's made for dogs and cats with short or long hair, and arrives with one shampoo to get you started.",
+        "button_label": "Shop the Brush",
+        "button_link": "",
+        "product": "",
+        "show_price": true
+      }
     },
     "reviews": {
       "type": "reviews",
       "settings": {
+        "eyebrow": "REVIEWS",
+        "heading": "What Pet Parents Say",
+        "text": "Reviews from verified Pawora orders will appear here. No ratings are shown until real reviews come in.",
         "layout": "wide"
       }
     },
     "final_cta": {
       "type": "final-cta",
-      "settings": {}
+      "settings": {
+        "heading": "Grooming, made simpler.",
+        "text": "One brush with a steam mist, a self-cleaning design and an IPX7 waterproof rating — plus a shampoo in the box.",
+        "button_label": "Shop the Brush",
+        "button_link": "",
+        "product": "",
+        "show_price": true,
+        "product_media_position": 0,
+        "image": "shopify://shop_images/pawora_open_box_fit.jpg",
+        "image_alt": "What's in the box",
+        "image_fit": "contain"
+      }
     }
   },
-  "order": ["hero", "benefits", "demo", "intro", "reviews", "final_cta"]
+  "order": [
+    "hero",
+    "benefits",
+    "demo",
+    "intro",
+    "reviews",
+    "final_cta"
+  ]
 }

@@ -32,7 +32,7 @@
           "type": "perk",
           "settings": {
             "icon": "drop",
-            "title": "IPX7 waterproof",
+            "title": "waterproof",
             "text": "Rated IPX7"
           }
         },
@@ -43,13 +43,22 @@
             "icon": "truck",
             "title": "Shipping & Delivery",
             "text": "Delivery details and costs",
+            "intro": "",
             "item_1_label": "Processing time",
+            "item_1_text": "Orders are prepared for shipment after they are placed. Processing times may vary depending on order volume and product availability. Once your order ships, you can use the tracking information provided to follow its progress.",
             "item_2_label": "Delivery time",
+            "item_2_text": "Your Pawora order should arrive within an estimated 3–7 business days, depending on your location. Once your order ships, you can use your tracking information to follow its progress. Please note that weekends, public holidays, and unexpected shipping delays may affect delivery times. Make sure your shipping address is correct at checkout for a smooth delivery experience.",
             "item_3_label": "Shipping cost",
+            "item_3_text": "Any applicable shipping fees will be displayed at checkout before you complete your order. We aim to keep shipping simple and transparent, so you'll know the total cost before making your purchase. Please check your order summary at checkout for the final shipping charges.",
             "item_4_label": "Where we ship",
+            "item_4_text": "Pawora aims to make pet grooming essentials accessible to pet parents. We ship to eligible locations supported by our shipping partners. Available shipping destinations and any applicable fees will be shown at checkout when you enter your delivery address. If your location isn't available, please contact our support team for assistance.",
+            "email": "",
+            "phone": "",
+            "hours": "",
             "policy": "shipping",
             "policy_heading": "Our shipping policy",
             "note": "Shipping options and costs for your address are shown at checkout, before you pay.",
+            "link": "",
             "link_label": "Read the full shipping policy"
           }
         },
@@ -60,11 +69,22 @@
             "icon": "return",
             "title": "Returns & Refunds",
             "text": "Eligibility, process and refunds",
+            "intro": "",
             "item_1_label": "Who can return",
+            "item_1_text": "If you're not satisfied with your Pawora order, please review our return policy to check whether your purchase is eligible for a return. Items must meet the conditions outlined in our policy. To request a return, contact our support team with your order number and a brief description of the issue. We'll guide you through the next steps.",
             "item_2_label": "How to start a return",
+            "item_2_text": "Starting a return is simple. Contact our Pawora support team with your order number and explain why you'd like to return your item. Our team will review your request, confirm whether your order meets our return policy requirements, and provide instructions for the next steps. Please wait for return instructions before sending any items back.",
             "item_3_label": "Refunds",
+            "item_3_text": "Once your return request has been approved and any required return steps are completed, eligible refunds will be processed according to our refund policy. Refunds are issued to the original payment method, and the time it takes for the funds to appear may depend on your bank or payment provider. Our Pawora support team is happy to help if you have questions about your refund status.",
+            "item_4_label": "",
+            "item_4_text": "",
+            "email": "",
+            "phone": "",
+            "hours": "",
             "policy": "refund",
             "policy_heading": "Our refund policy",
+            "note": "",
+            "link": "",
             "link_label": "Read the full refund policy"
           }
         },
@@ -75,11 +95,21 @@
             "icon": "support",
             "title": "Customer Support",
             "text": "Order help and product questions",
+            "intro": "",
             "item_1_label": "Order help",
             "item_1_text": "Have your order number from your confirmation email ready so we can find your order quickly.",
             "item_2_label": "Product help",
             "item_2_text": "Questions about using or caring for your brush? Tell us what you need help with in your message.",
+            "item_3_label": "",
+            "item_3_text": "",
+            "item_4_label": "",
+            "item_4_text": "",
+            "email": "",
+            "phone": "",
+            "hours": "",
             "policy": "none",
+            "policy_heading": "Our policy",
+            "note": "",
             "link": "/pages/contact",
             "link_label": "Contact us"
           }
@@ -103,7 +133,7 @@
         "subtitle": "Steam mist brush · For dogs & cats · Short or long hair",
         "description_source": "text",
         "description": "A deshedding brush with a built-in steam mist and a self-cleaning design. Rated IPX7 waterproof and described as skin friendly, it's made for dogs and cats with short or long hair.",
-        "note": "In the box: 1 brush, 1 shampoo."
+        "note": "What's included: 1 Pawora grooming brush and 1 shampoo bottle."
       }
     },
     "details": {
@@ -112,6 +142,7 @@
         "feature_1": {
           "type": "feature",
           "settings": {
+            "image": "shopify://shop_images/Golden_Retriever_Grooming_Close-Up.png",
             "image_alt": "",
             "product_media_position": 0,
             "title": "Self-Cleaning Design",
@@ -121,6 +152,7 @@
         "feature_2": {
           "type": "feature",
           "settings": {
+            "image": "shopify://shop_images/Cozy_Misty_Grooming_Moment.png",
             "image_alt": "",
             "product_media_position": 0,
             "title": "Steam Mist",
@@ -130,6 +162,7 @@
         "feature_3": {
           "type": "feature",
           "settings": {
+            "image": "shopify://shop_images/Rinsing_a_Pet_Brush_with_a_Curious_Dog.png",
             "image_alt": "",
             "product_media_position": 0,
             "title": "IPX7 Waterproof",
@@ -145,6 +178,7 @@
       "settings": {
         "eyebrow": "THE DETAILS",
         "heading": "Designed for Easier Grooming",
+        "video": "shopify://files/videos/soldy-sdtask_5u9CVAJJ8KR.mp4",
         "video_url": "",
         "video_caption": "The self-cleaning mechanism"
       }
