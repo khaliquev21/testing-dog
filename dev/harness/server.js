@@ -263,11 +263,10 @@ async function renderSection(globals, id, type, data = {}) {
   });
   if (type === 'main-product' && state.reviews > 0) {
     // synthetic review blocks for tests only (clearly labelled fixtures, never shipped)
-    const fixtures = [
-      { id: 'rev1', type: 'review', shopify_attributes: '', settings: { rating: 5, text: 'TEST REVIEW ONE (fixture text, not a real customer).', name: 'Test Person A.', verified: true, photo: img(7), photo_alt: 'Test photo one' } },
-      { id: 'rev2', type: 'review', shopify_attributes: '', settings: { rating: 4, text: 'TEST REVIEW TWO (fixture text, not a real customer). This one is a little longer than the first so the box height has to cope with different lengths without moving anything.', name: 'Test Person B.', verified: false, photo: null, photo_alt: '' } }
-    ];
-    blocks.push(...fixtures.slice(0, state.reviews));
+    const r1 = { id: 'rev1', type: 'review', shopify_attributes: '', settings: { rating: 5, title: 'TEST TITLE ONE', text: 'TEST REVIEW ONE (fixture text, not a real customer).', name: 'Test Person A.', verified: true, photo: wide('Test photo one'), photo_alt: 'Test photo one' } };
+    const r2 = { id: 'rev2', type: 'review', shopify_attributes: '', settings: { rating: 4, title: '', text: 'TEST REVIEW TWO (fixture text, not a real customer). This one is a little longer than the first so the card has to cope with a longer text and no photo without breaking.', name: 'Test Person B.', verified: false, photo: null, photo_alt: '' } };
+    const empty = { id: 'rev3', type: 'review', shopify_attributes: '', settings: { rating: 0, title: '', text: '', name: '', verified: false, photo: null, photo_alt: '' } };
+    blocks.push(...({ 1: [r1], 2: [r2], 3: [r1, r2], 4: [empty] }[state.reviews] || []));
   }
   const section = { id, settings, blocks, block_order: blockOrder, type };
   const html = await engine.render(tpls, { section }, { globals });

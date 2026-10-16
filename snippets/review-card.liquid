@@ -1,0 +1,74 @@
+{%- comment -%}
+  One compact customer review card for the product page. Shows only content typed into a "Customer review"
+  block in the theme editor. Nothing is invented and nothing is verified automatically.
+
+  - No review entered: the card is hidden on the live store. In the theme editor only, a clearly labelled
+    preview with example wording is shown so you can see where it goes.
+  - The "Verified purchase" badge only appears if you tick it on the block.
+
+  Accepts:
+  - block: the first "review" block, or nil
+{%- endcomment -%}
+{%- liquid
+  assign has_review = false
+  if block and block.settings.text != blank
+    assign has_review = true
+  elsif block and block.settings.title != blank
+    assign has_review = true
+  endif
+-%}
+{%- if has_review -%}
+  <figure class="pw-rcard" data-review-card {{ block.shopify_attributes }}>
+    {%- if block.settings.photo != blank -%}
+      {{
+        block.settings.photo
+        | image_url: width: 104, height: 104, crop: 'center'
+        | image_tag: width: 52, height: 52, loading: 'lazy', alt: block.settings.photo_alt, class: 'pw-rcard__photo'
+      }}
+    {%- endif -%}
+    <div class="pw-rcard__body">
+      {%- if block.settings.rating > 0 or block.settings.verified -%}
+        <div class="pw-rcard__meta">
+          {%- if block.settings.rating > 0 -%}
+            <span class="pw-rcard__stars" role="img" aria-label="{{ 'product.review_rating' | t: rating: block.settings.rating }}">
+              {%- for i in (1..5) -%}
+                {%- if i <= block.settings.rating -%}
+                  {% render 'icon', name: 'star', size: 14, class: 'pw-rcard__star' %}
+                {%- else -%}
+                  {% render 'icon', name: 'star', size: 14, class: 'pw-rcard__star is-empty' %}
+                {%- endif -%}
+              {%- endfor -%}
+            </span>
+          {%- endif -%}
+          {%- if block.settings.verified -%}
+            <span class="pw-rcard__verified">{% render 'icon', name: 'check', size: 12, stroke: 3 %}{{ 'product.verified_purchase' | t }}</span>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+      {%- if block.settings.title != blank -%}
+        <p class="pw-rcard__title">&ldquo;{{ block.settings.title }}&rdquo;</p>
+      {%- endif -%}
+      {%- if block.settings.text != blank -%}
+        <blockquote class="pw-rcard__text">{{ block.settings.text }}</blockquote>
+      {%- endif -%}
+      {%- if block.settings.name != blank -%}
+        <figcaption class="pw-rcard__name">&mdash; {{ block.settings.name }}</figcaption>
+      {%- endif -%}
+    </div>
+  </figure>
+{%- elsif request.design_mode -%}
+  <figure class="pw-rcard pw-rcard--preview" data-review-preview {{ block.shopify_attributes }}>
+    <span class="pw-rcard__photo pw-rcard__photo--empty" aria-hidden="true">{% render 'icon', name: 'paw', size: 22, stroke: 1.8 %}</span>
+    <div class="pw-rcard__body">
+      <p class="pw-rcard__tag">Preview only. Hidden on your live store until you add a real review. Example wording, not a testimonial.</p>
+      <div class="pw-rcard__meta">
+        <span class="pw-rcard__stars" aria-hidden="true">
+          {%- for i in (1..5) -%}{% render 'icon', name: 'star', size: 14, class: 'pw-rcard__star' %}{%- endfor -%}
+        </span>
+      </div>
+      <p class="pw-rcard__title">&ldquo;Finally, grooming is easier!&rdquo;</p>
+      <blockquote class="pw-rcard__text">A short, one- or two-sentence review about using the {{ settings.brand_name }} grooming brush.</blockquote>
+      <figcaption class="pw-rcard__name">&mdash; Customer name</figcaption>
+    </div>
+  </figure>
+{%- endif -%}

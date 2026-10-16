@@ -74,16 +74,24 @@ The three rows under the buy box open into detail panels. What each panel shows:
 - **Support:** add an email, phone and hours in the row, or leave the email empty to use your Shopify store email (**Settings > Store details**). Only add hours you actually keep.
 - Without JavaScript all panels are simply open and readable.
 
-### Customer reviews box (under Add to Cart)
+### Customer review card (under Add to Cart)
 
-A compact box, "Pet Parents Love Pawora", sits between Add to Cart and the benefit cards. **It shows only reviews you enter, and nothing is invented.**
+One small review card sits directly under the bundle cards and Add to Cart. **It shows only what you type in, and nothing is invented.** There is no carousel and no heading.
 
-- **Add reviews:** Customize > Product page > Product > **Add block > Customer review** (up to two). For each: the customer's star rating (0 hides stars), the review text (one or two sentences), the name to display, the customer's own photo (optional), and **Verified Buyer** (tick only if you confirmed the purchase). Use only real reviews, with permission to show the name and photo, and never stock or AI pictures.
-- **Two reviews:** they alternate with a soft fade every 10 seconds, with small dots and previous/next buttons. A manual change restarts the 10 seconds. It pauses on hover, keyboard focus and when the tab is hidden, and does not auto-rotate for visitors who prefer reduced motion.
-- **One review:** shown without rotation or controls.
-- **No photo:** no picture is shown at all (nothing stands in for the customer).
-- **No reviews yet:** the box says "Be the first to review Pawora." You can add a "Write a review" link in the same section settings, or turn the line off.
-- **Review apps:** no review app was found in this theme, so there is nothing to read reviews from automatically. If you install one (Judge.me, Loox, Yotpo and others each need their own setup), tell me which and I can connect its data; the existing larger Reviews section also accepts the app's block.
+**To add your review and photo:**
+
+1. Shopify admin > **Online Store > Themes > Customize** (on the Pawora theme), then open the **Product page** template.
+2. In the left panel click **Product** (the main product section), scroll to the list of blocks and press **Add block > Customer review**. Only one is allowed.
+3. Fill in the block:
+   - **Customer or pet photo:** press **Select image** and upload or pick the photo. It is cropped from the centre into a small square (about 52 px), so any shape works. Use a real photo this customer sent you, with their permission. Add a short **Photo description** for screen readers.
+   - **Star rating the customer gave:** move the slider to what they actually gave (for example 5). 0 hides the stars.
+   - **Review title**, **Review** (one or two sentences) and **Name to display** (first name and last initial, for example "Sam R.").
+   - **Show "Verified purchase" badge:** leave it off unless you have checked in Shopify admin that this person bought the product. The theme cannot check orders by itself.
+4. Press **Save**. To remove the card, delete the block.
+
+**Until you add a real review:** the card is hidden on your live store. In the theme editor only, you see a dashed, clearly labelled preview with example wording ("Finally, grooming is easier!") so you can see where the card goes. That example text is never shown to shoppers.
+
+**Review apps:** no review app is installed, so nothing is read automatically and no review form is added.
 
 ## 5. Preview checklist
 

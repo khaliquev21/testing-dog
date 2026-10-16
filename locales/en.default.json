@@ -24,10 +24,7 @@
     "decrease_quantity": "Decrease quantity",
     "increase_quantity": "Increase quantity",
     "remove_item": "Remove {{ title }}",
-    "product_media": "Product media",
-    "previous_review": "Previous review",
-    "next_review": "Next review",
-    "show_review": "Show review {{ position }} of {{ total }}"
+    "product_media": "Product media"
   },
   "product": {
     "quantity": "Quantity",
@@ -49,10 +46,8 @@
       "one": "{{ count }} {{ brand }} grooming brush",
       "other": "{{ count }} {{ brand }} grooming brushes"
     },
-    "reviews_empty": "Be the first to review {{ brand }}.",
-    "reviews_write": "Write a review",
     "review_rating": "Rated {{ rating }} out of 5 stars",
-    "verified_buyer": "Verified Buyer"
+    "verified_purchase": "Verified purchase"
   },
   "cart": {
     "title": "Your bag",
