@@ -462,65 +462,97 @@ async function newPage(browser, opts = {}) {
     await set('compareAt=1999');
     check('compare-at lower than price is not shown', /data-compare-price hidden/.test(await get(PRODUCT)));
   }
-  await reset(); await set('scenario=media&variants=2&compareAt=4998');
+  /* Intended Shopify data: 1 Brush $29.99 (compare-at $49.99), 2 Brushes $49.99 (compare-at $59.98) */
+  const DATA = 'scenario=media&variants=2&compareAt=4999&bundlePrice=4999&bundleCompareAt=5998';
+  const PB = '[data-product-price]';
+  await reset(); await set(DATA);
   {
     const { ctx, page } = await newPage(browser);
+    const posts = [];
+    page.on('request', (r) => { if (r.url().includes('/cart/add.js')) posts.push((r.postData() || '').replace(/\r/g, '')); });
     await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
     const cards = page.locator('.pw-variant');
-    check('two purchase options: 1 Brush and 2 Brushes', (await cards.count()) === 2 && /1 Brush/.test(await cards.nth(0).innerText()) && /2 Brushes/.test(await cards.nth(1).innerText()));
-    const c1 = await txt(cards.nth(0)); const c2 = await txt(cards.nth(1));
-    check('1 Brush card: $29.99, was $49.98, Save $19.99', /\$29\.99/.test(c1) && /\$49\.98/.test(c1) && /Save \$19\.99/.test(c1), c1);
-    check('2 Brushes card: $49.99, was $59.98 (2 x $29.99), Save $9.99', /\$49\.99/.test(c2) && /\$59\.98/.test(c2) && /Save \$9\.99/.test(c2), c2);
-    check('"BEST VALUE" badge on the 2 Brushes only', /BEST VALUE/.test(c2) && !/BEST VALUE/.test(c1));
-    check('1 Brush selected by default and shown as selected', await page.locator('[data-variant-input][value="1001"]').isChecked() && (await cards.nth(0).getAttribute('class')).includes('is-selected'));
-    check('main price block starts at $29.99 / $49.98 / Save $19.99', (await txt(page.locator('[data-product-price]'))) === '$29.99 $49.98 Save $19.99');
-    await cards.nth(1).click();
-    check('choosing 2 Brushes immediately updates price, comparison and savings ($49.99 / $59.98 / Save $9.99)', (await txt(page.locator('[data-product-price]'))) === '$49.99 $59.98 Save $9.99', await txt(page.locator('[data-product-price]')));
-    check('selected card is clearly marked, the other is not', (await cards.nth(1).getAttribute('class')).includes('is-selected') && !(await cards.nth(0).getAttribute('class')).includes('is-selected') && (await page.locator('.pw-variant.is-selected .pw-variant__check').count()) === 1);
-    await cards.nth(0).click();
-    check('switching back restores $29.99 / $49.98 / Save $19.99', (await txt(page.locator('[data-product-price]'))) === '$29.99 $49.98 Save $19.99');
-    // quantity + button price follow the selection
-    const disp = () => page.inputValue('[data-qty-display]');
+    const qty = () => page.inputValue('[data-qty-input]');
     const addPrice = () => txt(page.locator('[data-add-price]'));
-    check('1 Brush selected: quantity shows 1 brush, minus disabled, plus enabled, button price $29.99', (await disp()) === '1' && (await page.locator('[data-qty-minus]').isDisabled()) && !(await page.locator('[data-qty-plus]').isDisabled()) && (await addPrice()) === '$29.99');
-    check('quantity box is display-only (cannot be typed into)', await page.locator('[data-qty-display]').evaluate((e) => e.readOnly));
+    const names = await page.$$eval('.pw-variant__title', (els) => els.map((e) => e.textContent.trim()));
+    check('two separate cards named "1 Brush" and "2 Brushes" (never a joined title)', names.join('|') === '1 Brush|2 Brushes', names.join('|'));
+    const ids = await page.$$eval('[data-variant-input]', (els) => els.map((e) => e.value));
+    check('each card maps to exactly one different Shopify variant (1001, 1002)', ids.join() === '1001,1002', ids.join());
+    const c1 = await txt(cards.nth(0)); const c2 = await txt(cards.nth(1));
+    check('1 Brush card: $29.99, was $49.99, Save $20.00 (its own compare-at)', /\$29\.99/.test(c1) && /\$49\.99/.test(c1) && /Save \$20\.00/.test(c1) && !/59\.98/.test(c1), c1);
+    check('2 Brushes card: $49.99, was $59.98, Save $9.99 (its own compare-at)', /\$49\.99/.test(c2) && /\$59\.98/.test(c2) && /Save \$9\.99/.test(c2) && !/\$29\.99|\$20\.00/.test(c2), c2);
+    check('"BEST VALUE" badge on the 2 Brushes only', /BEST VALUE/.test(c2) && !/BEST VALUE/.test(c1));
+    check('1 Brush selected on load and marked as selected', await page.locator('[data-variant-input][value="1001"]').isChecked() && (await cards.nth(0).getAttribute('class')).includes('is-selected'));
+    check('selected card: orange border and light background; the other keeps the plain style', await page.evaluate(() => {
+      const [a, b] = [...document.querySelectorAll('.pw-variant')].map((el) => getComputedStyle(el));
+      return a.borderTopColor !== b.borderTopColor && a.backgroundColor !== b.backgroundColor;
+    }));
+    check('load: main price $29.99 / $49.99 / Save $20.00', (await txt(page.locator(PB))) === '$29.99 $49.99 Save $20.00', await txt(page.locator(PB)));
+    check('load: quantity is 1 and the label reads "Quantity (bundles)"', (await qty()) === '1' && (await txt(page.locator('label[for^="Quantity"]'))) === 'Quantity (bundles)');
+    check('load: Add to Cart price $29.99', (await addPrice()) === '$29.99');
+    check('quantity box is editable (it counts bundles, not a read-only brush count)', await page.locator('[data-qty-input]').evaluate((e) => !e.readOnly && e.name === 'quantity'));
+
     await cards.nth(1).click();
-    check('choosing 2 Brushes sets quantity to 2, plus disabled, minus enabled', (await disp()) === '2' && (await page.locator('[data-qty-plus]').isDisabled()) && !(await page.locator('[data-qty-minus]').isDisabled()));
-    check('price beside Add to Cart updates to $49.99', (await addPrice()) === '$49.99');
-    await page.click('[data-qty-minus]');
-    check('stepper minus moves to the 1 Brush and everything follows ($29.99 / $49.98 / Save $19.99, qty 1)', (await disp()) === '1' && (await page.locator('[data-variant-input][value="1001"]').isChecked()) && (await txt(page.locator('[data-product-price]'))) === '$29.99 $49.98 Save $19.99' && (await addPrice()) === '$29.99');
-    await page.click('[data-qty-plus]');
-    check('stepper plus moves to the 2 Brushes and everything follows ($49.99 / $59.98 / Save $9.99, qty 2)', (await disp()) === '2' && (await page.locator('[data-variant-input][value="1002"]').isChecked()) && (await txt(page.locator('[data-product-price]'))) === '$49.99 $59.98 Save $9.99');
-    let posted = null;
-    page.on('request', (r) => { if (r.url().includes('/cart/add.js')) posted = (r.postData() || '').replace(/\r/g, ''); });
+    check('2 Brushes: main price $49.99 / $59.98 / Save $9.99', (await txt(page.locator(PB))) === '$49.99 $59.98 Save $9.99', await txt(page.locator(PB)));
+    check('2 Brushes: quantity stays 1 (not 2)', (await qty()) === '1');
+    check('2 Brushes: Add to Cart price $49.99', (await addPrice()) === '$49.99');
+    check('2 Brushes card is the selected one, the other is not', (await cards.nth(1).getAttribute('class')).includes('is-selected') && !(await cards.nth(0).getAttribute('class')).includes('is-selected') && (await page.locator('.pw-variant.is-selected').count()) === 1);
+    await cards.nth(0).click();
+    check('back to 1 Brush: main price, button and quantity all return ($29.99 / $49.99 / Save $20.00, qty 1)', (await txt(page.locator(PB))) === '$29.99 $49.99 Save $20.00' && (await addPrice()) === '$29.99' && (await qty()) === '1');
+    check('URL follows the selected variant', /variant=1001/.test(page.url()));
+
+    await cards.nth(1).click();
     await page.click('[data-add-to-cart]'); await page.waitForSelector('cart-drawer.is-open');
     let st = await state();
-    check('2 brushes adds ONE 2-pack variant (id 1002, cart quantity 1), not two', st.cart.length === 1 && st.cart[0].variantId === 1002 && st.cart[0].quantity === 1, JSON.stringify(st.cart));
-    check('request posted variant 1002 and quantity 1', /\n1002\n/.test(posted) && /name="quantity"\n\n1\n/.test(posted), posted.replace(/\s+/g, ' ').slice(0, 160));
+    check('2 Brushes, quantity 1 adds ONE 2-brush variant (id 1002, quantity 1), not two', st.cart.length === 1 && st.cart[0].variantId === 1002 && st.cart[0].quantity === 1, JSON.stringify(st.cart));
+    check('request posted id 1002 and quantity 1', /\n1002\n/.test(posts[0]) && /name="quantity"\n\n1\n/.test(posts[0]), posts[0].replace(/\s+/g, ' ').slice(0, 160));
     const drawer = await txt(page.locator('.pw-drawer__body'));
-    check('cart charges $49.99 (Shopify variant price) and subtotal is $49.99', /\$49\.99/.test(drawer) && /\$49\.99/.test(await txt(page.locator('.pw-drawer__subtotal'))), drawer);
-    // the cart itself can raise the bundle count; pricing stays consistent
-    await page.click('[data-line-plus]'); await page.waitForTimeout(500);
-    check('raising the 2-pack line to 2 in the cart = 4 brushes at $99.98, consistent Shopify price', (await state()).cart[0].quantity === 2 && /\$99\.98/.test(await txt(page.locator('.pw-drawer__subtotal'))), await txt(page.locator('.pw-drawer__subtotal')));
-    await page.keyboard.press('Escape');
-    await cards.nth(0).click();
-    check('switching to 1 Brush: quantity 1', (await disp()) === '1');
-    await page.click('[data-add-to-cart]'); await page.waitForTimeout(700);
-    st = await state();
-    check('1 Brush adds variant 1001 x1 as its own line (no price mixing)', st.cart.length === 2 && st.cart.some((l) => l.variantId === 1001 && l.quantity === 1), JSON.stringify(st.cart));
-    check('cart subtotal = 2 x $49.99 + $29.99 = $129.97', /\$129\.97/.test(await txt(page.locator('.pw-drawer__subtotal'))), await txt(page.locator('.pw-drawer__subtotal')));
-    const body = await page.evaluate(() => 0);
+    check('cart charges $49.99 and the subtotal is $49.99', /\$49\.99/.test(drawer) && /\$49\.99/.test(await txt(page.locator('.pw-drawer__subtotal'))), drawer);
+    check('cart line names the "2 Brushes" variant', /2 Brushes/.test(drawer), drawer);
     check('no JS errors', page.errors.length === 0, page.errors.join('|'));
     await ctx.close();
   }
-  await reset(); await set('scenario=media&variants=2&compareAt=4998');
+  await reset(); await set(DATA);
+  {
+    const { ctx, page } = await newPage(browser);
+    const posts = [];
+    page.on('request', (r) => { if (r.url().includes('/cart/add.js')) posts.push((r.postData() || '').replace(/\r/g, '')); });
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const qty = () => page.inputValue('[data-qty-input]');
+    const addPrice = () => txt(page.locator('[data-add-price]'));
+    await page.click('.pw-variant:has([value="1002"])');
+    await page.click('[data-qty-plus]');
+    check('2 Brushes, quantity 2: Add to Cart price is 2 x $49.99 = $99.98', (await qty()) === '2' && (await addPrice()) === '$99.98', await addPrice());
+    check('main price stays the price of ONE selected bundle ($49.99)', (await txt(page.locator(PB))) === '$49.99 $59.98 Save $9.99');
+    await page.click('[data-add-to-cart]'); await page.waitForSelector('cart-drawer.is-open');
+    let st = await state();
+    check('quantity 2 adds two of the 2-brush variant (id 1002, quantity 2)', st.cart.length === 1 && st.cart[0].variantId === 1002 && st.cart[0].quantity === 2 && /name="quantity"\n\n2\n/.test(posts[0]), JSON.stringify(st.cart));
+    check('cart subtotal $99.98', /\$99\.98/.test(await txt(page.locator('.pw-drawer__subtotal'))), await txt(page.locator('.pw-drawer__subtotal')));
+    await page.keyboard.press('Escape');
+    await page.click('.pw-variant:has([value="1001"])');
+    check('choosing another bundle starts again at quantity 1', (await qty()) === '1' && (await addPrice()) === '$29.99');
+    await page.click('[data-qty-plus]'); await page.click('[data-qty-plus]');
+    check('1 Brush, quantity 3: Add to Cart price is 3 x $29.99 = $89.97', (await qty()) === '3' && (await addPrice()) === '$89.97', await addPrice());
+    await page.click('[data-add-to-cart]'); await page.waitForTimeout(700);
+    st = await state();
+    check('1 Brush x3 is its own cart line (variant 1001, quantity 3), the 2 Brushes line is untouched', st.cart.length === 2 && st.cart.some((l) => l.variantId === 1001 && l.quantity === 3) && st.cart.some((l) => l.variantId === 1002 && l.quantity === 2), JSON.stringify(st.cart));
+    check('cart subtotal = 2 x $49.99 + 3 x $29.99 = $189.95', /\$189\.95/.test(await txt(page.locator('.pw-drawer__subtotal'))), await txt(page.locator('.pw-drawer__subtotal')));
+    await page.keyboard.press('Escape');
+    await page.fill('[data-qty-input]', '99'); await page.dispatchEvent('[data-qty-input]', 'change');
+    check('typing a huge quantity is clamped to the maximum (10) and the price follows ($299.90)', (await qty()) === '10' && (await addPrice()) === '$299.90', (await qty()) + ' ' + (await addPrice()));
+    await page.fill('[data-qty-input]', '0'); await page.dispatchEvent('[data-qty-input]', 'change');
+    check('quantity never goes below 1', (await qty()) === '1' && (await page.locator('[data-qty-minus]').isDisabled()));
+    check('no JS errors', page.errors.length === 0, page.errors.join('|'));
+    await ctx.close();
+  }
+  await reset(); await set(DATA);
   {
     const { ctx, page } = await newPage(browser);
     await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
     const cards = page.locator('.pw-variant');
     const c1 = await txt(cards.nth(0)); const c2 = await txt(cards.nth(1));
     check('single card: "1 Pawora grooming brush", no bundle copy', /1 Pawora grooming brush\b(?!es)/.test(c1) && !/Keep a spare/.test(c1), c1);
-    check('two-pack card: "2 Pawora grooming brushes" and the supporting line', /2 Pawora grooming brushes/.test(c2) && /Keep a spare or groom more than one pet\./.test(c2), c2);
+    check('two-brush card: "2 Pawora grooming brushes" and the supporting line', /2 Pawora grooming brushes/.test(c2) && /Keep a spare or groom more than one pet\./.test(c2), c2);
     check('each card has a radio indicator, and only the selected one is filled', (await page.locator('.pw-variant__check').count()) === 2 && (await page.locator('.pw-variant.is-selected').count()) === 1);
     const order = await page.evaluate(() => {
       const pos = (sel) => document.querySelector(sel);
@@ -530,55 +562,48 @@ async function newPage(browser, opts = {}) {
     check('placement: description, then bundle cards, then Quantity, then Add to Cart', order.descToCards && order.cardsToQty && order.qtyToAdd, JSON.stringify(order));
     await ctx.close();
   }
-  // wrong submit prevention: the posted id/quantity always come from the selected card, quantity is always 1
-  await reset(); await set('scenario=media&variants=2');
+  /* ---- Prices come only from each variant: never borrowed, never calculated ---- */
+  await reset(); await set('scenario=media&variants=2&compareAt=4999&bundlePrice=4999');
   {
     const { ctx, page } = await newPage(browser);
-    let posted = null;
-    page.on('request', (r) => { if (r.url().includes('/cart/add.js')) posted = (r.postData() || '').replace(/\r/g, ''); });
-    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
-    await page.click('.pw-variant:has([value="1002"])');
-    await page.evaluate(() => { const q = document.querySelector('[data-qty-input]'); q.value = '99'; }); // tamper with the hidden field
-    await page.click('[data-add-to-cart]'); await page.waitForSelector('cart-drawer.is-open');
-    const st = await state();
-    check('tampering with the hidden quantity cannot buy a wrong amount (reset to 1 before sending)', st.cart[0].variantId === 1002 && st.cart[0].quantity === 1, JSON.stringify(st.cart) + ' ' + (posted || '').replace(/\s+/g, ' ').slice(0, 120));
-    await ctx.close();
-  }
-  /* ---- Bundle option "Bundle": one card per variant, exact variant to cart ---- */
-  await reset(); await set('scenario=media&variants=2&compareAt=4998');
-  {
-    const { ctx, page } = await newPage(browser);
-    const posts = [];
-    page.on('request', (r) => { if (r.url().includes('/cart/add.js')) posts.push((r.postData() || '').replace(/\r/g, '')); });
     await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
     const cards = page.locator('.pw-variant');
-    const names = await page.$$eval('.pw-variant__title', (els) => els.map((e) => e.textContent.trim()));
-    check('Bundle option: exactly two cards named "1 Brush" and "2 Brushes" (never a joined title)', names.length === 2 && names[0] === '1 Brush' && names[1] === '2 Brushes' && !/\//.test(names.join()), names.join('|'));
-    const ids = await page.$$eval('[data-variant-input]', (els) => els.map((e) => e.value));
-    check('each card maps to exactly one different variant id', ids.length === 2 && ids[0] !== ids[1] && ids.join() === '1001,1002', ids.join());
-    const prices = await page.$$eval('.pw-variant__price', (els) => els.map((e) => e.textContent.trim()));
-    check('each card shows its own price ($29.99 and $49.99, not one shared price)', prices.join('|') === '$29.99|$49.99', prices.join('|'));
-    check('selected card: orange border and light background; the other keeps the plain style', await page.evaluate(() => {
-      const [a, b] = [...document.querySelectorAll('.pw-variant')].map((el) => getComputedStyle(el));
-      return a.borderTopColor !== b.borderTopColor && a.backgroundColor !== b.backgroundColor;
-    }));
+    const c1 = await txt(cards.nth(0)); const c2 = await txt(cards.nth(1));
+    check('2 Brushes has no compare-at in Shopify: no strikethrough, no saving, no badge (nothing borrowed or invented)', /\$49\.99/.test(c2) && !/59\.98|49\.98|Save|BEST VALUE/.test(c2) && !/<s>/.test(await cards.nth(1).innerHTML()), c2);
+    check('1 Brush still shows its own compare-at', /\$49\.99/.test(c1) && /Save \$20\.00/.test(c1), c1);
     await cards.nth(1).click();
-    check('picking "2 Brushes" updates the main price right away', (await txt(page.locator('[data-product-price]'))) === '$49.99 $59.98 Save $9.99');
-    await page.click('[data-add-to-cart]'); await page.waitForSelector('cart-drawer.is-open');
-    let st = await state();
-    check('"2 Brushes" adds variant 1002 x1 at $49.99 (form posted id=1002)', st.cart.length === 1 && st.cart[0].variantId === 1002 && st.cart[0].quantity === 1 && /(^|[=&\s"])1002/.test(posts[0] || ''), JSON.stringify(st.cart) + ' ' + (posts[0] || '').replace(/\s+/g, ' ').slice(0, 100));
-    check('cart drawer shows the 2 Brushes line at $49.99', /49\.99/.test(await page.locator('cart-drawer').innerText()));
-    await page.keyboard.press('Escape');
+    check('main price for 2 Brushes shows no comparison or saving', (await txt(page.locator(PB))) === '$49.99', await txt(page.locator(PB)));
+    await cards.nth(0).click();
+    check('main price for 1 Brush shows only its own comparison', (await txt(page.locator(PB))) === '$29.99 $49.99 Save $20.00', await txt(page.locator(PB)));
     await ctx.close();
-    await reset(); await set('scenario=media&variants=2&compareAt=4998');
-    const p2 = await newPage(browser);
-    await p2.page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
-    await p2.page.click('[data-add-to-cart]'); await p2.page.waitForSelector('cart-drawer.is-open');
-    st = await state();
-    check('"1 Brush" adds variant 1001 x1 at $29.99', st.cart.length === 1 && st.cart[0].variantId === 1001 && st.cart[0].quantity === 1 && /29\.99/.test(await p2.page.locator('cart-drawer').innerText()), JSON.stringify(st.cart));
-    await p2.ctx.close();
   }
-  await reset(); await set('scenario=media&variants=5&compareAt=4998');
+  await reset(); await set('scenario=media&variants=2&compareAt=4999&bundlePrice=2999&bundleCompareAt=5998');
+  {
+    const html = await get(PRODUCT);
+    const cards = [...html.matchAll(/<label class="pw-variant[ "][\s\S]*?<\/label>/g)].map((m) => m[0].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '));
+    check('both variants priced $29.99 in Shopify: the page shows exactly that (the theme never alters a price)', cards.length === 2 && /\$29\.99/.test(cards[0]) && /\$29\.99/.test(cards[1]), cards.join(' || '));
+    check('such a bundle gets no BEST VALUE badge', !/BEST VALUE/.test(html));
+    const ed = await get(PRODUCT + '?design_mode=1');
+    check('editor view lists each variant with its Shopify price, compare-at and id', /"1 Brush": price \$29\.99/.test(ed.replace(/\s+/g, ' ')) && /"2 Brushes": price \$29\.99/.test(ed.replace(/\s+/g, ' ')) && /variant id 1002/.test(ed));
+    check('editor view flags a 2 Brushes price that is not above the 1 Brush price', /not higher than the 1 Brush price/.test(ed));
+    check('shoppers never see the set-up check', !/Bundle set-up check|variant id/.test(html));
+  }
+  await reset(); await set('scenario=media&variants=2&bundlePrice=5998');
+  {
+    const html = await get(PRODUCT);
+    check('bundle priced at 2 singles: no saving, no badge, no strikethrough (nothing invented)', !/BEST VALUE|pw-variant__save|pw-variant__was/.test(html));
+  }
+  await reset(); await set('scenario=media&variants=2&price=3499&compareAt=5499&bundlePrice=5999&bundleCompareAt=6998');
+  {
+    const { ctx, page } = await newPage(browser);
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    check('numbers follow Shopify data when prices change ($34.99 / $54.99 / Save $20.00)', (await txt(page.locator(PB))) === '$34.99 $54.99 Save $20.00', await txt(page.locator(PB)));
+    await page.click('.pw-variant:has([value="1002"])');
+    check('... and for 2 Brushes ($59.99 / $69.98 / Save $9.99, button $59.99)', (await txt(page.locator(PB))) === '$59.99 $69.98 Save $9.99' && (await txt(page.locator('[data-add-price]'))) === '$59.99', await txt(page.locator(PB)));
+    await ctx.close();
+  }
+  /* ---- Bundle option "Bundle": one card per value ---- */
+  await reset(); await set('scenario=media&variants=5&compareAt=4999&bundleCompareAt=5998');
   {
     const html = await get(PRODUCT);
     const n = (html.match(/class="pw-variant[ "]/g) || []).length;
@@ -599,18 +624,7 @@ async function newPage(browser, opts = {}) {
     check('that product still adds its one real variant to the cart without errors', st4.cart.length === 1 && st4.cart[0].variantId === 1001, JSON.stringify(st4.cart));
     await ctx.close();
   }
-  await reset(); await set('scenario=media&variants=2&bundlePrice=5998');
-  {
-    const html = await get(PRODUCT);
-    check('bundle priced at or above 2 singles: no saving, no badge, no strikethrough (nothing invented)', !/BEST VALUE|pw-variant__save|pw-variant__was/.test(html));
-  }
-  await reset(); await set('scenario=media&variants=2&price=3499&compareAt=5498&bundlePrice=5999');
-  {
-    const block = (await get(PRODUCT)).split('data-product-price')[1].split('</div>')[0].replace(/<[^>]+>/g, ' ').replace(/^[>\s]+/, '').replace(/\s+/g, ' ').trim();
-    check('numbers follow Shopify data when prices change ($34.99 / $54.98 / Save $19.99)', block === '$34.99 $54.98 Save $19.99', block);
-    check('2 Brushes compare is 2 x the live single price ($69.98) and saving $9.99', /\$69\.98/.test(await get(PRODUCT)) && /Save \$9\.99/.test(await get(PRODUCT)));
-  }
-  await reset(); await set('scenario=media&variants=2&compareAt=4998');
+  await reset(); await set(DATA);
   for (const [name, vp] of [['mobile', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1100 }]]) {
     const { ctx, page } = await newPage(browser, { viewport: vp, hasTouch: true });
     await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
@@ -618,12 +632,13 @@ async function newPage(browser, opts = {}) {
     if (name === 'mobile') check('mobile: the two options stack full width, equal size, no sideways scroll', !geo.sameRow && geo.w[0] >= 340 && Math.abs(geo.w[0] - geo.w[1]) <= 2 && geo.sw <= vp.width, JSON.stringify(geo));
     else check('tablet: both options sit side by side, equal width, no sideways scroll', geo.sameRow && Math.abs(geo.w[0] - geo.w[1]) <= 2 && geo.sw <= vp.width, JSON.stringify(geo));
     await page.tap('.pw-variant:has([value="1002"])'); await page.waitForTimeout(250);
-    check(`${name}: tapping 2 Brushes updates the price block`, (await txt(page.locator('[data-product-price]'))) === '$49.99 $59.98 Save $9.99');
+    check(`${name}: tapping 2 Brushes updates the price block and button`, (await txt(page.locator(PB))) === '$49.99 $59.98 Save $9.99' && (await txt(page.locator('[data-add-price]'))) === '$49.99');
     if (name === 'mobile') {
       await page.evaluate(() => window.scrollTo(0, document.querySelector('.pw-details').offsetTop)); await page.waitForTimeout(400);
       check('mobile: sticky bar shows the selected option\'s price', /\$49\.99/.test(await txt(page.locator('[data-sticky-bar]'))));
       await page.click('[data-sticky-button]'); await page.waitForSelector('cart-drawer.is-open');
-      check('mobile: sticky Add to Cart adds the selected 2 Brushes', (await state()).cart.some((l) => l.variantId === 1002));
+      const stm = await state();
+      check('mobile: sticky Add to Cart adds the selected 2 Brushes, quantity 1', stm.cart.length === 1 && stm.cart[0].variantId === 1002 && stm.cart[0].quantity === 1, JSON.stringify(stm.cart));
     }
     await ctx.close();
   }

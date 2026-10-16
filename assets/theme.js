@@ -280,8 +280,6 @@
       this.sticky = document.querySelector('[data-sticky-bar]');
       this.hiddenId = this.querySelector('[data-variant-id]');
       this.max = parseInt(this.dataset.max, 10) || 10;
-      this.bundle = this.hasAttribute('data-bundle');
-      this.display = this.querySelector('[data-qty-display]');
       this.addPrice = this.querySelector('[data-add-price]');
       this.busy = false;
       this.resetTimer = null;
@@ -295,16 +293,9 @@
 
       this.setQty(this.input ? this.input.value : 1);
 
-      if (this.bundle) {
-        // Quantity box = brushes in the selected bundle. Buttons only move between real bundle sizes.
-        if (this.minus) this.minus.addEventListener('click', function () { this.stepBundle(-1); }.bind(this));
-        if (this.plus) this.plus.addEventListener('click', function () { this.stepBundle(1); }.bind(this));
-        this.syncBundle();
-      } else {
-        if (this.minus) this.minus.addEventListener('click', function () { this.setQty(this.qty() - 1); }.bind(this));
-        if (this.plus) this.plus.addEventListener('click', function () { this.setQty(this.qty() + 1); }.bind(this));
-      }
-      if (this.input && !this.bundle) {
+      if (this.minus) this.minus.addEventListener('click', function () { this.setQty(this.qty() - 1); }.bind(this));
+      if (this.plus) this.plus.addEventListener('click', function () { this.setQty(this.qty() + 1); }.bind(this));
+      if (this.input) {
         this.input.addEventListener('change', function () { this.setQty(this.input.value); }.bind(this));
         this.input.addEventListener('input', function () {
           this.input.value = this.input.value.replace(/[^0-9]/g, '');
@@ -321,41 +312,34 @@
       return parseInt(this.input.value, 10) || 1;
     }
 
-    /* Available bundle options sorted by number of brushes: [{input, units}] */
-    bundleOptions() {
-      return this.variantInputs.filter(function (i) { return !i.disabled; }).map(function (i) {
-        return { input: i, units: parseInt(i.dataset.units, 10) || 1 };
-      }).sort(function (a, b) { return a.units - b.units; });
-    }
-
-    syncBundle() {
+    /* The variant that is currently selected (checked bundle card, else the hidden id, else the first). */
+    currentVariant() {
       var checked = this.variantInputs.filter(function (i) { return i.checked; })[0];
-      if (!checked) return;
-      var units = parseInt(checked.dataset.units, 10) || 1;
-      var options = this.bundleOptions();
-      if (this.display) this.display.value = units;
-      if (this.input) this.input.value = 1; // always one of the selected bundle variant
-      if (this.minus) this.minus.disabled = !options.some(function (o) { return o.units < units; });
-      if (this.plus) this.plus.disabled = !options.some(function (o) { return o.units > units; });
+      var id = checked ? checked.value : (this.hiddenId ? this.hiddenId.value : null);
+      var found = this.variants.find(function (v) { return String(v.id) === String(id); });
+      return found || this.variants[0] || null;
     }
 
-    stepBundle(direction) {
-      var current = parseInt((this.variantInputs.filter(function (i) { return i.checked; })[0] || {}).dataset.units, 10) || 1;
-      var options = this.bundleOptions().filter(function (o) { return direction > 0 ? o.units > current : o.units < current; });
-      if (!options.length) return;
-      var target = direction > 0 ? options[0] : options[options.length - 1];
-      target.input.checked = true;
-      target.input.dispatchEvent(new Event('change', { bubbles: true }));
+    /* Add to Cart price = the selected variant's Shopify price x the quantity (formatted by Shopify). */
+    showTotal(n) {
+      var variant = this.currentVariant();
+      if (!variant) return;
+      var text = variant.totals && variant.totals[n - 1] ? variant.totals[n - 1] : variant.priceFormatted;
+      if (this.addPrice) { this.addPrice.textContent = text; this.addPrice.hidden = !variant.available; }
+      if (this.sticky) {
+        var sp = this.sticky.querySelector('[data-price]');
+        if (sp) sp.textContent = text;
+      }
     }
 
     setQty(value) {
-      if (this.bundle) { this.resetLabel(); return; }
       var n = parseInt(value, 10);
       if (isNaN(n) || n < 1) n = 1;
       if (n > this.max) n = this.max;
       if (this.input) this.input.value = n;
       if (this.minus) this.minus.disabled = n <= 1;
       if (this.plus) this.plus.disabled = n >= this.max;
+      this.showTotal(n);
       this.resetLabel();
     }
 
@@ -399,11 +383,10 @@
       if (!variant) return;
 
       this.available = variant.available;
-      if (!this.bundle) this.max = variant.max || this.max;
-      if (this.bundle) this.syncBundle();
-      if (this.addPrice) { this.addPrice.textContent = variant.priceFormatted; this.addPrice.hidden = !variant.available; }
+      this.max = variant.max || this.max;
       this.submit.disabled = !variant.available;
-      this.setQty(this.qty());
+      if (this.input) this.input.value = 1; // choosing a bundle starts again at one of that bundle
+      this.setQty(1);
 
       if (this.stockNote) {
         this.stockNote.hidden = !variant.stock;
@@ -412,8 +395,6 @@
       if (this.sticky) {
         var sb = this.sticky.querySelector('[data-sticky-button]');
         if (sb) { sb.disabled = !variant.available; sb.textContent = variant.available ? strings.addToCart : strings.soldOut; }
-        var sp = this.sticky.querySelector('[data-price]');
-        if (sp) sp.textContent = variant.priceFormatted;
       }
 
       var section = this.section;
@@ -443,8 +424,7 @@
     onSubmit(event) {
       event.preventDefault();
       if (this.busy || !this.available) return;
-      if (this.bundle) this.syncBundle(); // quantity is always 1 of the selected bundle variant
-      else this.setQty(this.input ? this.input.value : 1);
+      this.setQty(this.input ? this.input.value : 1);
       this.clearError();
       this.busy = true;
       this.submit.setAttribute('aria-disabled', 'true');

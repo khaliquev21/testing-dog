@@ -168,7 +168,7 @@ const videoObj = (file, w, h, mimeType = 'video/webm') => ({
   preview_image: img(1)
 });
 
-const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '', policies: false, bundlePrice: 4999, templates: 'pristine', reviews: 0 };
+const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '', policies: false, bundlePrice: 4999, bundleCompareAt: null, templates: 'pristine', reviews: 0 };
 
 function makeProduct() {
   let optionNames = ['Style'];
@@ -179,7 +179,7 @@ function makeProduct() {
   });
   let variants;
   if (state.variants === 1) variants = [mk(1001, 'Default Title')];
-  else if (state.variants === 2) { optionNames = ['Bundle']; variants = [mk(1001, '1 Brush'), mk(1002, '2 Brushes')]; variants[1].price = state.bundlePrice; variants[1].compare_at_price = null; }
+  else if (state.variants === 2) { optionNames = ['Bundle']; variants = [mk(1001, '1 Brush'), mk(1002, '2 Brushes')]; variants[1].price = state.bundlePrice; variants[1].compare_at_price = state.bundleCompareAt; }
   else if (state.variants === 4) {
     /* The broken store set-up: ONE variant whose two options join into the title "1 Brush / 2 Brushes" */
     optionNames = ['Size', 'Bundle'];
@@ -188,7 +188,7 @@ function makeProduct() {
     /* Bundle plus a second option: several variants share each Bundle value */
     optionNames = ['Style', 'Bundle'];
     variants = [mk(1001, 'Classic / 1 Brush', { opts: ['Classic', '1 Brush'] }), mk(1002, 'Classic / 2 Brushes', { opts: ['Classic', '2 Brushes'] }), mk(1003, 'Plus / 1 Brush', { opts: ['Plus', '1 Brush'] }), mk(1004, 'Plus / 2 Brushes', { opts: ['Plus', '2 Brushes'] })];
-    variants[1].price = state.bundlePrice; variants[3].price = state.bundlePrice;
+    variants[1].price = state.bundlePrice; variants[3].price = state.bundlePrice; variants[1].compare_at_price = state.bundleCompareAt; variants[3].compare_at_price = state.bundleCompareAt;
   } else variants = [mk(1001, 'Option A'), mk(1002, 'Option B'), mk(1003, 'Option C', { available: false })];
 
   let media = [];
@@ -441,10 +441,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* test controls */
-    if (p === '/__reset') { Object.assign(state, { reviews: 0, templates: 'pristine', bundlePrice: 4999, policies: false, cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1 }); return send(res, 200, 'reset', 'text/plain'); }
+    if (p === '/__reset') { Object.assign(state, { reviews: 0, templates: 'pristine', bundlePrice: 4999, bundleCompareAt: null, policies: false, cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1 }); return send(res, 200, 'reset', 'text/plain'); }
     if (p === '/__set') {
       for (const [k, v] of url.searchParams) {
-        if (['price', 'stock', 'maxQty', 'variants', 'bundlePrice'].includes(k)) state[k] = parseInt(v, 10);
+        if (['price', 'stock', 'maxQty', 'variants', 'bundlePrice', 'bundleCompareAt'].includes(k)) state[k] = parseInt(v, 10);
         else if (k === 'policies') state.policies = v === '1';
         else if (k === 'templates') state.templates = v;
         else if (k === 'reviews') state.reviews = parseInt(v, 10);

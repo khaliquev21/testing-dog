@@ -25,11 +25,11 @@ Your Store Launch connection had no store linked, so the price could not be set 
 
 1. **Products** > open the brush (create it first if it does not exist: **Add product**).
 2. **Title:** `Self-Cleaning Pet Grooming Brush` (the theme shows the product title exactly as typed here).
-3. **Pricing > Price:** `29.99`. Leave **Compare-at price** empty. The theme hides compare-at prices by default, so there is one standard price.
+3. **Pricing > Price:** `29.99` (with the bundle option below, each variant gets its own price instead).
 4. **Bundle (1 brush or 2 brushes).** The two bundle cards come from **one** product option named exactly `Bundle`:
    1. Open the product, scroll to **Variants** (or **Options**), and choose **Add options like size or color**.
    2. Option name: `Bundle`. Values: `1 Brush`, then `2 Brushes`. Each value must **start with the number** (the theme reads it). Use only this one option. Do not add a second option for the same thing: a variant called `1 Brush / 2 Brushes` is a **single** variant that joins two options, and it shows up as one card with one price.
-   3. Set the prices in the variant table: `1 Brush` **Price 29.99**, **Compare-at price 49.98** (optional); `2 Brushes` **Price 49.99**, Compare-at empty.
+   3. Set the prices in the variant table. Each variant holds its **own** price and compare-at price, and the page never borrows one variant's numbers for another: `1 Brush` **Price 29.99**, **Compare-at price 49.99**; `2 Brushes` **Price 49.99**, **Compare-at price 59.98**. (If you leave a Compare-at empty, that card simply shows no crossed-out price and no saving.)
    4. Set inventory for both variants (the `2 Brushes` variant counts two-packs) and **Save**.
    5. Reload the product page. Two cards appear, each mapped to exactly one variant, with its own price. "BEST VALUE" and the supporting line appear by themselves.
 
@@ -37,11 +37,11 @@ Your Store Launch connection had no store linked, so the price could not be set 
 
    Why variants and not a discount: Shopify cannot tell a theme about an automatic discount before checkout, so a theme can only *display* a discount price it cannot guarantee. A real variant at $49.99 is charged at $49.99 by Shopify. The card wording, the badge and the line "Keep a spare or groom more than one pet." are editable under Customize > Product page > Product > Bundle / option cards.
 
-   What shoppers see: the 1 Brush shows ~~$49.98~~ $29.99 with "Save $19.99". The 2 Brushes shows $49.99 with ~~$59.98~~ and "Save $9.99" and a "BEST VALUE" badge. The $59.98 is always 2 x the live 1 Brush price, and the saving is that minus the 2 Brushes price. If you later change a price in Shopify, every number follows. If the 2 Brushes ever costs the same as or more than two singles, the saving, badge and strikethrough disappear by themselves. A compare-at price shows only if Shopify has one that is higher than the selling price.
+   What shoppers see: the 1 Brush shows ~~$49.99~~ $29.99 with "Save $20.00". The 2 Brushes shows $49.99 with ~~$59.98~~ and "Save $9.99" and a "BEST VALUE" badge. Every number is that variant's own price and compare-at price from Shopify (the saving is compare-at minus price, so $59.98 − $49.99 = $9.99). If you later change a price in Shopify, every number follows. The badge only appears on a bundle that costs more than one brush but less than the same number of single brushes.
 
-   Because these are variants, **Shopify itself prices the cart and checkout**: the page only sends the chosen variant, always with cart quantity 1, so it cannot send a wrong price. No discount code or app is needed.
+   Because these are variants, **Shopify itself prices the cart and checkout**: the page sends the chosen variant ID and the quantity, so it cannot send a wrong price. No discount code or app is needed.
 
-   **Quantity box:** when the product has a bundle, the box shows the number of **brushes** in the selected option (1 or 2) and follows the cards. Its minus and plus buttons only move between the real bundle sizes (1 and 2), so price and quantity can never disagree. Shoppers who want more can raise the quantity of the bundle in the cart (2 of the 2 Brushes bundle = 4 brushes at $99.98). The selected price also shows inside the Add to Cart button.
+   **Quantity (bundles):** the quantity counts how many of the *selected bundle* the customer buys. It starts at 1 and goes back to 1 when a different bundle is chosen. `2 Brushes` with quantity 1 adds one 2 Brushes variant; quantity 2 adds two of them (four brushes). The price inside the Add to Cart button is the selected variant's price times the quantity, formatted by Shopify (for example $99.98 for two of the 2 Brushes variant).
 5. **Save.**
 6. Check the currency: **Settings > Store details** (store currency) and **Settings > Markets**. The price displays in USD when the store currency is USD. The theme can append "USD" after prices (Theme settings > Product and pricing).
 

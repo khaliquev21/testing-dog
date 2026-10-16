@@ -1,16 +1,16 @@
 {%- comment -%}
-  Works out the comparison price and saving for one variant, from real Shopify prices only.
+  Works out the brush count, comparison price and saving for one variant. Shopify is the only source of prices.
   Outputs three numbers separated by "|": units | compare (cents) | saving (cents). 0 means "none".
 
-  - units: the number at the start of the variant name ("2 Brushes" = 2, "1 Brush" = 1; anything else = 1)
-  - Bundle (units > 1): compare = units x the single-brush price. A saving only exists if the bundle
-    really costs less than buying that many singles.
-  - Single: compare = the variant's own Shopify compare_at_price, only if it is higher than the price.
+  - units: the number at the start of the Bundle option value ("2 Brushes" = 2, "1 Brush" = 1; anything else = 1).
+    Used only for the "2 grooming brushes" wording, never for any price.
+  - compare: the variant's OWN Shopify compare_at_price, only when it is higher than its selling price.
+    Nothing is calculated or invented: no compare-at on the variant means no strikethrough and no saving.
+  - saving: compare_at_price minus price, both from the same variant.
 
   Accepts:
   - variant: variant object
   - label: the Bundle option value for this variant ("2 Brushes"); defaults to the variant title
-  - unit_price: price in cents of one single brush (the 1-unit variant)
 {%- endcomment -%}
 {%- liquid
   assign vp_label = label | default: variant.title
@@ -19,14 +19,9 @@
     assign vp_units = 1
   endif
   assign vp_compare = 0
-  assign vp_ref = unit_price | times: vp_units
-  if vp_units > 1 and vp_ref > variant.price
-    assign vp_compare = vp_ref
-  elsif settings.show_compare_at_price and variant.compare_at_price > variant.price
-    assign vp_compare = variant.compare_at_price
-  endif
   assign vp_save = 0
-  if vp_compare > 0
+  if settings.show_compare_at_price and variant.compare_at_price > variant.price
+    assign vp_compare = variant.compare_at_price
     assign vp_save = vp_compare | minus: variant.price
   endif
   echo vp_units | append: '|' | append: vp_compare | append: '|' | append: vp_save

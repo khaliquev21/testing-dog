@@ -1,0 +1,44 @@
+{%- comment -%}
+  Theme editor only. Lists exactly what Shopify sends for each variant and flags set-up problems.
+  Shoppers never see this (the caller renders it only when request.design_mode is true). Nothing is changed or hidden by it.
+
+  Accepts: product, bundle_pos (index of the option named "Bundle", -1 if none), unit_price (price of the 1 Brush variant),
+  show_cards (true when two or more Bundle cards are drawn)
+{%- endcomment -%}
+{%- assign chk_single_price = unit_price -%}
+<div class="pw-acc__todo" data-setup-check>
+  <strong>Bundle set-up check (only you see this).</strong>
+  Options found: {{ product.options | join: ', ' }}.
+  Variants Shopify sent:
+  <ul>
+    {%- for v in product.variants -%}
+      {%- liquid
+        assign chk_label = v.title
+        if bundle_pos >= 0
+          assign chk_label = v.options[bundle_pos]
+        endif
+        assign chk_units = chk_label | replace: '-', ' ' | split: ' ' | first | plus: 0
+      -%}
+      <li>
+        "{{ v.title }}": price {{ v.price | money }},
+        {% if v.compare_at_price > v.price %}compare-at {{ v.compare_at_price | money }}{% else %}no compare-at price{% endif %}
+        (variant id {{ v.id }}).
+        {%- if chk_units > 1 and v.price <= chk_single_price %}
+          <strong>This price is not higher than the 1 Brush price. Change the "{{ chk_label }}" variant's Price in Shopify.</strong>
+        {%- endif -%}
+        {%- if chk_units > 1 and v.compare_at_price <= v.price %}
+          Add a Compare-at price to this variant if you want it crossed out.
+        {%- endif -%}
+      </li>
+    {%- endfor -%}
+  </ul>
+  {%- if bundle_pos < 0 -%}
+    No option is named "Bundle", so each variant is shown as its own card.
+  {%- endif -%}
+  {%- if product.options.size > 1 -%}
+    Use "Bundle" as the only option. A variant title such as "1 Brush / 2 Brushes" is ONE variant that joins two options.
+  {%- endif -%}
+  {%- unless show_cards -%}
+    The cards are hidden because fewer than two "Bundle" values were found. Add ONE option named "Bundle" with the values "1 Brush" and "2 Brushes", each variant with its own price.
+  {%- endunless -%}
+</div>

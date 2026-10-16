@@ -92,23 +92,23 @@
     endif
     assign v_key = ',' | append: v.id | append: ','
     capture vp_text
-      render 'variant-pricing', variant: v, label: v_label, unit_price: unit_price
+      render 'variant-pricing', variant: v, label: v_label
     endcapture
     assign vp_bits = vp_text | split: '|'
     assign vp_u = vp_bits[0] | plus: 0
     assign vp_s = vp_bits[2] | plus: 0
-    if vp_u > 1 and vp_s > best_save and card_ids contains v_key
+    assign vs_singles = unit_price | times: vp_u
+    if vp_u > 1 and vp_s > best_save and v.price < vs_singles and v.price > unit_price and card_ids contains v_key
       assign best_save = vp_s
       assign best_id = v.id
     endif
   endfor
 
   capture cur_text
-    render 'variant-pricing', variant: current_variant, label: cur_label, unit_price: unit_price
+    render 'variant-pricing', variant: current_variant, label: cur_label
   endcapture
   assign cur_bits = cur_text | split: '|'
   assign cur_compare = cur_bits[1] | plus: 0
-  assign cur_units = cur_bits[0] | plus: 0
 
   assign low_stock_limit = section.settings.low_stock_threshold | default: 0
   assign stock_left = 0
@@ -262,7 +262,7 @@
         </ul>
       {%- endif -%}
 
-      <product-form class="pw-buy" data-max="{{ max_qty }}" data-form-id="{{ form_id }}"{% if bundle_mode %} data-bundle{% endif %}>
+      <product-form class="pw-buy" data-max="{{ max_qty }}" data-form-id="{{ form_id }}">
         {%- form 'product', product, id: form_id, class: 'pw-buy__form', novalidate: 'novalidate' -%}
           {%- if show_cards -%}
             <fieldset class="pw-variants">
@@ -284,7 +284,7 @@
                       assign show_card = true
                     endif
                     capture card_text
-                      render 'variant-pricing', variant: variant, label: card_label, unit_price: unit_price
+                      render 'variant-pricing', variant: variant, label: card_label
                     endcapture
                     assign card_bits = card_text | split: '|'
                     assign card_compare = card_bits[1] | plus: 0
@@ -337,18 +337,14 @@
                 {%- endfor -%}
               </div>
               {%- if request.design_mode -%}
-                {%- if bundle_pos < 0 or product.options.size > 1 -%}
-                  <p class="pw-acc__todo">Bundle set-up check (only you see this). Options found: {{ product.options | join: ', ' }}. Variants found: {% for v in product.variants %}"{{ v.title }}"{% unless forloop.last %}, {% endunless %}{% endfor %}.
-                    {% if bundle_pos < 0 %}No option is named "Bundle", so each variant is shown as its own card.{% endif %}
-                    {% if product.options.size > 1 %}Use "Bundle" as the only option. Extra options (such as the second one here) are not shown as cards, and a variant title such as "1 Brush / 2 Brushes" is ONE variant that joins two options.{% endif %}</p>
-                {%- endif -%}
+                {%- render 'bundle-setup-check', product: product, bundle_pos: bundle_pos, unit_price: unit_price, show_cards: show_cards -%}
               {%- endif -%}
             </fieldset>
           {%- else -%}
             <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
             {%- if request.design_mode -%}
               {%- if has_variants -%}
-                <p class="pw-acc__todo">Bundle set-up check (only you see this). The cards are hidden because only one "Bundle" value was found, and two separate cards need two variants. Options found: {{ product.options | join: ', ' }}. Variants found: {% for v in product.variants %}"{{ v.title }}"{% unless forloop.last %}, {% endunless %}{% endfor %}. A variant title such as "1 Brush / 2 Brushes" is ONE variant that joins two options. In Shopify admin, open the product and keep ONE option named "Bundle" with two values, "1 Brush" and "2 Brushes", each variant with its own price.</p>
+                {%- render 'bundle-setup-check', product: product, bundle_pos: bundle_pos, unit_price: unit_price, show_cards: show_cards -%}
               {%- else -%}
                 <p class="pw-acc__todo">Bundle cards are hidden because this product has only one variant. In Shopify admin, open the product, add ONE option named "Bundle" with the values "1 Brush" and "2 Brushes", then set a price for each. The two cards appear here automatically. Shoppers do not see this note.</p>
               {%- endif -%}
@@ -356,7 +352,7 @@
           {%- endif -%}
 
           {%- if bundle_mode -%}
-            <label class="pw-buy__label" for="{{ qty_id }}">{{ 'product.quantity_brushes' | t }}</label>
+            <label class="pw-buy__label" for="{{ qty_id }}">{{ 'product.quantity_bundles' | t }}</label>
           {%- else -%}
             <label class="pw-buy__label" for="{{ qty_id }}">{{ 'product.quantity' | t }}</label>
           {%- endif -%}
@@ -365,26 +361,21 @@
               <button type="button" class="pw-qty__btn" data-qty-minus aria-label="{{ 'accessibility.decrease_quantity' | t }}">
                 {% render 'icon', name: 'minus', size: 18, stroke: 2.2 %}
               </button>
-              {%- if bundle_mode -%}
-                {%- comment -%}
-                  Bundle mode: the box shows how many brushes the selected option contains. It is display only.
-                  The cart quantity is always 1 of the selected bundle variant, so Shopify's own variant price is charged.
-                {%- endcomment -%}
-                <input id="{{ qty_id }}" class="pw-qty__input" type="text" value="{{ cur_units }}" readonly data-qty-display aria-live="polite">
-                <input type="hidden" name="quantity" value="1" data-qty-input>
-              {%- else -%}
-                <input
-                  id="{{ qty_id }}"
-                  class="pw-qty__input"
-                  type="text"
-                  inputmode="numeric"
-                  pattern="[0-9]*"
-                  name="quantity"
-                  value="1"
-                  data-qty-input
-                  autocomplete="off"
-                >
-              {%- endif -%}
+              {%- comment -%}
+                The quantity is always the number of the selected variant (bundles) sent to the cart.
+                It starts at 1 and does not change when a bundle card is chosen.
+              {%- endcomment -%}
+              <input
+                id="{{ qty_id }}"
+                class="pw-qty__input"
+                type="text"
+                inputmode="numeric"
+                pattern="[0-9]*"
+                name="quantity"
+                value="1"
+                data-qty-input
+                autocomplete="off"
+              >
               <button type="button" class="pw-qty__btn" data-qty-plus aria-label="{{ 'accessibility.increase_quantity' | t }}">
                 {% render 'icon', name: 'plus', size: 18, stroke: 2.2 %}
               </button>
@@ -416,7 +407,8 @@
           <p class="pw-buy__error" role="alert" data-form-error hidden></p>
         {%- endform -%}
 
-        {%- if has_variants -%}
+        {%- assign total_cap = settings.max_quantity | default: 10 -%}
+        {%- if product.variants.size > 0 -%}
           <script type="application/json" data-variants-json>
             [
               {%- for variant in product.variants -%}
@@ -426,7 +418,7 @@
                     assign json_label = variant.options[bundle_pos]
                   endif
                   capture json_text
-                    render 'variant-pricing', variant: variant, label: json_label, unit_price: unit_price
+                    render 'variant-pricing', variant: variant, label: json_label
                   endcapture
                   assign json_bits = json_text | split: '|'
                   assign json_compare = json_bits[1] | plus: 0
@@ -440,6 +432,12 @@
                   "priceFormatted": {% if settings.show_currency_code %}{{ variant.price | money_with_currency | json }}{% else %}{{ variant.price | money | json }}{% endif %},
                   "compareFormatted": {% if json_save > 0 %}{{ json_compare | money | json }}{% else %}""{% endif %},
                   "saveFormatted": {% if json_save > 0 %}{{ 'product.save' | t: amount: json_save_amount | json }}{% else %}""{% endif %},
+                  "totals": [
+                    {%- for n in (1..total_cap) -%}
+                      {%- assign line_total = variant.price | times: n -%}
+                      {% if settings.show_currency_code %}{{ line_total | money_with_currency | json }}{% else %}{{ line_total | money | json }}{% endif %}{% unless forloop.last %},{% endunless %}
+                    {%- endfor -%}
+                  ],
                   "mediaId": {{ variant.featured_media.id | json }},
                   "stock": {% if variant.inventory_management == 'shopify' and variant.inventory_quantity > 0 and variant.inventory_quantity <= low_stock_limit %}{{ variant.inventory_quantity }}{% else %}0{% endif %},
                   "max": {% if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny' and variant.inventory_quantity > 0 and variant.inventory_quantity < settings.max_quantity %}{{ variant.inventory_quantity }}{% else %}{{ settings.max_quantity }}{% endif %}
