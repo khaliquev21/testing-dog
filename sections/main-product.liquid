@@ -26,6 +26,41 @@
     assign gallery_ratio = 0.8
   endif
 
+  comment
+    Bundle pricing, from real variant prices only (see snippets/variant-pricing.liquid).
+  endcomment
+  assign unit_price = 0
+  for v in product.variants
+    assign v_units = v.title | replace: '-', ' ' | split: ' ' | first | plus: 0
+    if v_units == 1 and unit_price == 0
+      assign unit_price = v.price
+    endif
+  endfor
+  if unit_price == 0
+    assign unit_price = current_variant.price
+  endif
+
+  assign best_id = 0
+  assign best_save = 0
+  for v in product.variants
+    capture vp_text
+      render 'variant-pricing', variant: v, unit_price: unit_price
+    endcapture
+    assign vp_bits = vp_text | split: '|'
+    assign vp_u = vp_bits[0] | plus: 0
+    assign vp_s = vp_bits[2] | plus: 0
+    if vp_u > 1 and vp_s > best_save
+      assign best_save = vp_s
+      assign best_id = v.id
+    endif
+  endfor
+
+  capture cur_text
+    render 'variant-pricing', variant: current_variant, unit_price: unit_price
+  endcapture
+  assign cur_bits = cur_text | split: '|'
+  assign cur_compare = cur_bits[1] | plus: 0
+
   assign low_stock_limit = section.settings.low_stock_threshold | default: 0
   assign stock_left = 0
   if current_variant.inventory_management == 'shopify' and current_variant.inventory_quantity > 0 and current_variant.inventory_quantity <= low_stock_limit
@@ -157,7 +192,7 @@
       </div>
 
       <div class="pw-product__price" data-product-price>
-        {% render 'price', product: product, variant: current_variant %}
+        {% render 'price', product: product, variant: current_variant, compare: cur_compare, show_save: true %}
       </div>
 
       {%- if section.settings.description_source == 'product' and product.description != blank -%}
@@ -186,22 +221,37 @@
               <div class="pw-variants__grid">
                 {%- for variant in product.variants -%}
                   {%- liquid
-                    assign save_percent = 0
-                    if settings.show_compare_at_price and variant.compare_at_price > variant.price
-                      assign save_percent = variant.compare_at_price | minus: variant.price | times: 100.0 | divided_by: variant.compare_at_price | round
+                    capture card_text
+                      render 'variant-pricing', variant: variant, unit_price: unit_price
+                    endcapture
+                    assign card_bits = card_text | split: '|'
+                    assign card_compare = card_bits[1] | plus: 0
+                    assign card_save = card_bits[2] | plus: 0
+                    assign card_save_amount = card_save | money
+                    assign show_badge = false
+                    if section.settings.badge_text != blank
+                      if section.settings.badge_variant != blank
+                        if section.settings.badge_variant == variant.title
+                          assign show_badge = true
+                        endif
+                      elsif variant.id == best_id
+                        assign show_badge = true
+                      endif
                     endif
                   -%}
-                  <label class="pw-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-soldout{% endunless %}">
+                  <label class="pw-variant{% if variant == current_variant %} is-selected{% endif %}{% unless variant.available %} is-soldout{% endunless %}{% if show_badge %} has-badge{% endif %}">
                     <input class="pw-variant__input" type="radio" name="id" value="{{ variant.id }}" data-variant-input{% if variant == current_variant %} checked{% endif %}{% unless variant.available %} disabled{% endunless %}>
-                    {%- if section.settings.badge_text != blank and section.settings.badge_variant == variant.title -%}
+                    {%- if show_badge -%}
                       <span class="pw-variant__badge">{{ section.settings.badge_text }}</span>
                     {%- endif -%}
+                    <span class="pw-variant__check" aria-hidden="true"></span>
                     <span class="pw-variant__title">{{ variant.title }}</span>
                     <span class="pw-variant__price">
                       {%- if settings.show_currency_code -%}{{ variant.price | money_with_currency }}{%- else -%}{{ variant.price | money }}{%- endif -%}
                     </span>
-                    {%- if save_percent > 0 -%}
-                      <span class="pw-variant__save"><s>{{ variant.compare_at_price | money }}</s> Save {{ save_percent }}%</span>
+                    {%- if card_save > 0 -%}
+                      <span class="pw-variant__was"><s>{{ card_compare | money }}</s></span>
+                      <span class="pw-variant__save">{{ 'product.save' | t: amount: card_save_amount }}</span>
                     {%- endif -%}
                     {%- unless variant.available -%}
                       <span class="pw-variant__note">{{ 'product.sold_out' | t }}</span>
@@ -263,12 +313,22 @@
           <script type="application/json" data-variants-json>
             [
               {%- for variant in product.variants -%}
+                {%- liquid
+                  capture json_text
+                    render 'variant-pricing', variant: variant, unit_price: unit_price
+                  endcapture
+                  assign json_bits = json_text | split: '|'
+                  assign json_compare = json_bits[1] | plus: 0
+                  assign json_save = json_bits[2] | plus: 0
+                  assign json_save_amount = json_save | money
+                -%}
                 {
                   "id": {{ variant.id }},
                   "available": {{ variant.available | json }},
                   "price": {{ variant.price | json }},
                   "priceFormatted": {% if settings.show_currency_code %}{{ variant.price | money_with_currency | json }}{% else %}{{ variant.price | money | json }}{% endif %},
-                  "compareFormatted": {% if settings.show_compare_at_price and variant.compare_at_price > variant.price %}{{ variant.compare_at_price | money | json }}{% else %}""{% endif %},
+                  "compareFormatted": {% if json_save > 0 %}{{ json_compare | money | json }}{% else %}""{% endif %},
+                  "saveFormatted": {% if json_save > 0 %}{{ 'product.save' | t: amount: json_save_amount | json }}{% else %}""{% endif %},
                   "mediaId": {{ variant.featured_media.id | json }},
                   "stock": {% if variant.inventory_management == 'shopify' and variant.inventory_quantity > 0 and variant.inventory_quantity <= low_stock_limit %}{{ variant.inventory_quantity }}{% else %}0{% endif %},
                   "max": {% if variant.inventory_management == 'shopify' and variant.inventory_policy == 'deny' and variant.inventory_quantity > 0 and variant.inventory_quantity < settings.max_quantity %}{{ variant.inventory_quantity }}{% else %}{{ settings.max_quantity }}{% endif %}
@@ -448,9 +508,9 @@
       "type": "text",
       "id": "badge_variant",
       "label": "Variant to highlight (exact variant name)",
-      "info": "For example the variant you want to mark as most popular. Leave empty for no badge."
+      "info": "Leave empty to automatically badge the bundle with the biggest real saving."
     },
-    { "type": "text", "id": "badge_text", "label": "Highlight badge text", "default": "Most popular" },
+    { "type": "text", "id": "badge_text", "label": "Highlight badge text", "default": "BEST VALUE" },
     {
       "type": "range",
       "id": "low_stock_threshold",

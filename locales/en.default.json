@@ -39,7 +39,8 @@
     "low_stock": {
       "one": "Only {{ count }} left in stock",
       "other": "Only {{ count }} left in stock"
-    }
+    },
+    "save": "Save {{ amount }}"
   },
   "cart": {
     "title": "Your bag",

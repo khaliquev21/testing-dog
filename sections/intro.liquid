@@ -93,7 +93,7 @@
         <a class="pw-btn pw-btn--primary pw-btn--lg" href="{{ cta_url }}">
           {{- section.settings.button_label -}}
           {%- if section.settings.show_price and intro_product != blank -%}
-            <span class="pw-btn__price">{% render 'price', product: intro_product %}</span>
+            <span class="pw-btn__price">{% render 'price', product: intro_product, compact: true %}</span>
           {%- endif -%}
           {% render 'icon', name: 'arrow-right', size: 18, stroke: 2.2, class: 'pw-btn__arrow' %}
         </a>

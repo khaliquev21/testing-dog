@@ -70,8 +70,8 @@
         "type": "checkbox",
         "id": "show_compare_at_price",
         "label": "Show compare-at price when one is set on the product",
-        "default": false,
-        "info": "Off by default so the product shows a single, standard selling price."
+        "default": true,
+        "info": "Only shown when Shopify has a compare-at price higher than the selling price. Nothing is made up."
       }
     ]
   },

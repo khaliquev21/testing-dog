@@ -4,7 +4,7 @@
     "button_text_color": "#202020",
     "max_quantity": 10,
     "show_currency_code": false,
-    "show_compare_at_price": false,
+    "show_compare_at_price": true,
     "cart_type": "drawer"
   }
 }

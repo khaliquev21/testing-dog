@@ -1,0 +1,31 @@
+{%- comment -%}
+  Works out the comparison price and saving for one variant, from real Shopify prices only.
+  Outputs three numbers separated by "|": units | compare (cents) | saving (cents). 0 means "none".
+
+  - units: the number at the start of the variant name ("2 Pack" = 2, "1 Pack" = 1; anything else = 1)
+  - Bundle (units > 1): compare = units x the single-brush price. A saving only exists if the bundle
+    really costs less than buying that many singles.
+  - Single: compare = the variant's own Shopify compare_at_price, only if it is higher than the price.
+
+  Accepts:
+  - variant: variant object
+  - unit_price: price in cents of one single brush (the 1-unit variant)
+{%- endcomment -%}
+{%- liquid
+  assign vp_units = variant.title | replace: '-', ' ' | split: ' ' | first | plus: 0
+  if vp_units < 1
+    assign vp_units = 1
+  endif
+  assign vp_compare = 0
+  assign vp_ref = unit_price | times: vp_units
+  if vp_units > 1 and vp_ref > variant.price
+    assign vp_compare = vp_ref
+  elsif settings.show_compare_at_price and variant.compare_at_price > variant.price
+    assign vp_compare = variant.compare_at_price
+  endif
+  assign vp_save = 0
+  if vp_compare > 0
+    assign vp_save = vp_compare | minus: variant.price
+  endif
+  echo vp_units | append: '|' | append: vp_compare | append: '|' | append: vp_save
+-%}

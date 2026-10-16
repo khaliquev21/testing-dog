@@ -255,7 +255,7 @@ async function newPage(browser, opts = {}) {
   await reset(); await set('scenario=media');
   {
     const src = themeFiles();
-    const hits = src.filter((f) => /29\.99|2999/.test(fs.readFileSync(THEME + '/' + f, 'utf8')));
+    const hits = src.filter((f) => /29\.99|2999|49\.99|4999|49\.98|4998|59\.98|5998|19\.99|9\.99/.test(fs.readFileSync(THEME + '/' + f, 'utf8')));
     check('"29.99" appears nowhere in theme source files', hits.length === 0, hits.join(', '));
     const pages = ['/', PRODUCT, '/collections/all'];
     for (const price of [2999, 3499]) {
@@ -271,7 +271,7 @@ async function newPage(browser, opts = {}) {
     }
     await set('price=2999');
     const shopDefault = await get(PRODUCT);
-    check('compare-at price is hidden by default (single standard price)', !/pw-price__compare/.test(shopDefault));
+    check('no compare-at configured in Shopify -> hidden (single standard price)', /data-compare-price hidden/.test(shopDefault));
   }
 
   /* ------------------------------------------------------------------ VARIANTS */
@@ -295,11 +295,6 @@ async function newPage(browser, opts = {}) {
     const html = await get(PRODUCT);
     check('no option cards for single default-variant products', !/data-variant-input/.test(html));
     check('no invented savings or discount text when Shopify has no compare-at price', !/Save \d+%|pw-variant__save/.test(html));
-  }
-  await reset(); await set('scenario=media&variants=3&compareAt=4999&price=2999');
-  {
-    const html = await get('/products/self-cleaning-pet-grooming-brush');
-    check('savings only shown when the theme setting is on (off by default)', !/pw-variant__save/.test(html));
   }
   await reset(); await set('scenario=media&stock=3');
   {
@@ -442,6 +437,108 @@ async function newPage(browser, opts = {}) {
     check('mobile: rows are at least 56px tall tap targets', h >= 56, String(h));
     await page.locator('[data-acc-trigger]').nth(2).tap(); await page.waitForTimeout(500);
     check('mobile: tap opens a row, no sideways scroll', (await page.locator('[data-acc-trigger]').nth(2).getAttribute('aria-expanded')) === 'true' && (await page.evaluate(() => document.documentElement.scrollWidth)) <= 390);
+    await ctx.close();
+  }
+  await reset(); await set('scenario=media');
+
+  group('Pricing: compare-at, 2-pack bundle, live switching, cart');
+  const txt = (loc) => loc.innerText().then((t) => t.replace(/\s+/g, ' ').trim());
+  await reset(); await set('scenario=media&compareAt=4998');
+  {
+    const html = await get(PRODUCT);
+    const block = html.split('data-product-price')[1].split('</div>')[0].replace(/<[^>]+>/g, ' ').replace(/^[>\s]+/, '').replace(/\s+/g, ' ').trim();
+    check('single brush: struck compare-at $49.98, price $29.99, "Save $19.99" (from Shopify variant data)', block === '$29.99 $49.98 Save $19.99', block);
+    check('compare-at is a real strikethrough element', /<s class="pw-price__compare"[^>]*>\s*\$49\.98/.test(html));
+    const hero = (await get('/')).split('pw-hero__actions')[1].split('</div>')[0].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    check('buttons elsewhere show only the selling price (no strikethrough clutter)', /\$29\.99/.test(hero) && !/49\.98/.test(hero), hero.trim());
+  }
+  await reset(); await set('scenario=media');
+  {
+    const html = await get(PRODUCT);
+    check('no compare-at configured in Shopify -> no strikethrough, no Save label', /data-compare-price hidden/.test(html) && /data-save hidden/.test(html));
+    await set('compareAt=2999');
+    const h2 = await get(PRODUCT);
+    check('compare-at equal to price is not shown (no fake savings)', /data-compare-price hidden/.test(h2));
+    await set('compareAt=1999');
+    check('compare-at lower than price is not shown', /data-compare-price hidden/.test(await get(PRODUCT)));
+  }
+  await reset(); await set('scenario=media&variants=2&compareAt=4998');
+  {
+    const { ctx, page } = await newPage(browser);
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const cards = page.locator('.pw-variant');
+    check('two purchase options: 1 Pack and 2 Pack', (await cards.count()) === 2 && /1 Pack/.test(await cards.nth(0).innerText()) && /2 Pack/.test(await cards.nth(1).innerText()));
+    const c1 = await txt(cards.nth(0)); const c2 = await txt(cards.nth(1));
+    check('1 Pack card: $29.99, was $49.98, Save $19.99', /\$29\.99/.test(c1) && /\$49\.98/.test(c1) && /Save \$19\.99/.test(c1), c1);
+    check('2 Pack card: $49.99, was $59.98 (2 x $29.99), Save $9.99', /\$49\.99/.test(c2) && /\$59\.98/.test(c2) && /Save \$9\.99/.test(c2), c2);
+    check('"BEST VALUE" badge on the 2 Pack only', /BEST VALUE/.test(c2) && !/BEST VALUE/.test(c1));
+    check('1 Pack selected by default and shown as selected', await page.locator('[data-variant-input][value="1001"]').isChecked() && (await cards.nth(0).getAttribute('class')).includes('is-selected'));
+    check('main price block starts at $29.99 / $49.98 / Save $19.99', (await txt(page.locator('[data-product-price]'))) === '$29.99 $49.98 Save $19.99');
+    await cards.nth(1).click();
+    check('choosing 2 Pack immediately updates price, comparison and savings ($49.99 / $59.98 / Save $9.99)', (await txt(page.locator('[data-product-price]'))) === '$49.99 $59.98 Save $9.99', await txt(page.locator('[data-product-price]')));
+    check('selected card is clearly marked, the other is not', (await cards.nth(1).getAttribute('class')).includes('is-selected') && !(await cards.nth(0).getAttribute('class')).includes('is-selected') && (await page.locator('.pw-variant.is-selected .pw-variant__check').count()) === 1);
+    await cards.nth(0).click();
+    check('switching back restores $29.99 / $49.98 / Save $19.99', (await txt(page.locator('[data-product-price]'))) === '$29.99 $49.98 Save $19.99');
+    // add 2 pack
+    await cards.nth(1).click(); await page.click('[data-add-to-cart]'); await page.waitForSelector('cart-drawer.is-open');
+    let st = await state();
+    check('2 Pack adds the 2-pack variant (id 1002) x1 to the Shopify cart', st.cart.length === 1 && st.cart[0].variantId === 1002 && st.cart[0].quantity === 1, JSON.stringify(st.cart));
+    const drawer = await txt(page.locator('.pw-drawer__body'));
+    check('cart shows the bundle at $49.99 and subtotal $49.99 (Shopify price, not page text)', /\$49\.99/.test(drawer) && /\$49\.99/.test(await txt(page.locator('.pw-drawer__subtotal'))), drawer);
+    await page.keyboard.press('Escape');
+    // quantity 2 of the 2-pack
+    await page.click('[data-qty-plus]'); await page.click('[data-add-to-cart]'); await page.waitForTimeout(600);
+    st = await state();
+    check('quantity 2 of the 2-pack is 2 x $49.99 = $99.98 for 4 brushes (cart now 3 x 2-pack)', st.cart[0].variantId === 1002 && st.cart[0].quantity === 3, JSON.stringify(st.cart));
+    check('subtotal $149.97 matches Shopify variant prices', /\$149\.97/.test(await txt(page.locator('.pw-drawer__subtotal'))), await txt(page.locator('.pw-drawer__subtotal')));
+    await page.keyboard.press('Escape');
+    // single
+    await cards.nth(0).click(); await page.fill('[data-qty-input]', '1'); await page.locator('[data-qty-input]').blur();
+    await page.click('[data-add-to-cart]'); await page.waitForTimeout(700);
+    st = await state();
+    check('1 Pack adds variant 1001 as its own line (no price mixing)', st.cart.length === 2 && st.cart.some((l) => l.variantId === 1001 && l.quantity === 1), JSON.stringify(st.cart));
+    check('cart subtotal = 3 x $49.99 + $29.99 = $179.96', /\$179\.96/.test(await txt(page.locator('.pw-drawer__subtotal'))), await txt(page.locator('.pw-drawer__subtotal')));
+    const body = await page.evaluate(() => 0);
+    check('no JS errors', page.errors.length === 0, page.errors.join('|'));
+    await ctx.close();
+  }
+  // wrong submit prevention: the posted id/quantity always come from the selected card
+  await reset(); await set('scenario=media&variants=2');
+  {
+    const { ctx, page } = await newPage(browser);
+    let posted = null;
+    page.on('request', (r) => { if (r.url().includes('/cart/add.js')) posted = r.postData() || ''; });
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    await page.click('.pw-variant:has([value="1002"])'); await page.fill('[data-qty-input]', '99'); await page.locator('[data-qty-input]').blur();
+    await page.click('[data-add-to-cart]'); await page.waitForSelector('cart-drawer.is-open');
+    check('posted form carries the selected variant id and a clamped quantity (never 99)', /name="id"\s+1002|1002/.test(posted) && /name="quantity"\s+10|\r\n10\r\n/.test(posted.replace(/\r/g, '')) , (posted || '').replace(/\s+/g, ' ').slice(0, 200));
+    await ctx.close();
+  }
+  await reset(); await set('scenario=media&variants=2&bundlePrice=5998');
+  {
+    const html = await get(PRODUCT);
+    check('bundle priced at or above 2 singles: no saving, no badge, no strikethrough (nothing invented)', !/BEST VALUE|pw-variant__save|pw-variant__was/.test(html));
+  }
+  await reset(); await set('scenario=media&variants=2&price=3499&compareAt=5498&bundlePrice=5999');
+  {
+    const block = (await get(PRODUCT)).split('data-product-price')[1].split('</div>')[0].replace(/<[^>]+>/g, ' ').replace(/^[>\s]+/, '').replace(/\s+/g, ' ').trim();
+    check('numbers follow Shopify data when prices change ($34.99 / $54.98 / Save $19.99)', block === '$34.99 $54.98 Save $19.99', block);
+    check('2 Pack compare is 2 x the live single price ($69.98) and saving $9.99', /\$69\.98/.test(await get(PRODUCT)) && /Save \$9\.99/.test(await get(PRODUCT)));
+  }
+  await reset(); await set('scenario=media&variants=2&compareAt=4998');
+  for (const [name, vp] of [['mobile', { width: 390, height: 844 }], ['tablet', { width: 820, height: 1100 }]]) {
+    const { ctx, page } = await newPage(browser, { viewport: vp, hasTouch: true });
+    await page.goto(BASE + PRODUCT, { waitUntil: 'networkidle' });
+    const geo = await page.evaluate(() => { const r = [...document.querySelectorAll('.pw-variant')].map((e) => e.getBoundingClientRect()); return { w: r.map((x) => Math.round(x.width)), sameRow: Math.abs(r[0].top - r[1].top) < 4, sw: document.documentElement.scrollWidth }; });
+    check(`${name}: both options sit side by side, equal width, no sideways scroll`, geo.sameRow && Math.abs(geo.w[0] - geo.w[1]) <= 2 && geo.sw <= vp.width, JSON.stringify(geo));
+    await page.tap('.pw-variant:has([value="1002"])'); await page.waitForTimeout(250);
+    check(`${name}: tapping 2 Pack updates the price block`, (await txt(page.locator('[data-product-price]'))) === '$49.99 $59.98 Save $9.99');
+    if (name === 'mobile') {
+      await page.evaluate(() => window.scrollTo(0, document.querySelector('.pw-details').offsetTop)); await page.waitForTimeout(400);
+      check('mobile: sticky bar shows the selected option\'s price', /\$49\.99/.test(await txt(page.locator('[data-sticky-bar]'))));
+      await page.click('[data-sticky-button]'); await page.waitForSelector('cart-drawer.is-open');
+      check('mobile: sticky Add to Cart adds the selected 2 Pack', (await state()).cart.some((l) => l.variantId === 1002));
+    }
     await ctx.close();
   }
   await reset(); await set('scenario=media');

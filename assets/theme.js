@@ -385,6 +385,11 @@
           compare.textContent = variant.compareFormatted;
           compare.hidden = !variant.compareFormatted;
         }
+        var save = section.querySelector('[data-save]');
+        if (save) {
+          save.textContent = variant.saveFormatted;
+          save.hidden = !variant.saveFormatted;
+        }
       }
 
       if (window.history && window.history.replaceState) {

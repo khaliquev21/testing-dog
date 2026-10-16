@@ -26,7 +26,16 @@ Your Store Launch connection had no store linked, so the price could not be set 
 1. **Products** > open the brush (create it first if it does not exist: **Add product**).
 2. **Title:** `Self-Cleaning Pet Grooming Brush` (the theme shows the product title exactly as typed here).
 3. **Pricing > Price:** `29.99`. Leave **Compare-at price** empty. The theme hides compare-at prices by default, so there is one standard price.
-4. **Bundles (optional):** add one option, for example `Pack size`, with real variants such as `1 Pack`, `2 Packs`, `3 Packs`, each with its own price and inventory. The product page turns them into selectable cards automatically and adds the chosen variant to the cart. With only one variant, no cards are shown. Set your own bundle prices; the theme never invents a discount. Savings (struck-through price and "Save %") appear only if you set a Compare-at price on a variant **and** turn on Theme settings > Product and pricing > compare-at price.
+4. **Bundle (1 brush or 2 brushes):** the page reads real Shopify variants, so set the product up like this:
+   - Add one option named `Pack size` with two values: `1 Pack` and `2 Pack`. **The name must start with the number** (the theme reads it).
+   - `1 Pack`: **Price 29.99**, **Compare-at price 49.98**.
+   - `2 Pack`: **Price 49.99**. Leave its compare-at empty (the theme calculates the comparison itself).
+   - Set inventory for each variant. For the 2 Pack, one unit of stock means one two-pack.
+   - **Save.**
+
+   What shoppers see: the 1 Pack shows ~~$49.98~~ $29.99 with "Save $19.99". The 2 Pack shows $49.99 with ~~$59.98~~ and "Save $9.99" and a "BEST VALUE" badge. The $59.98 is always 2 x the live 1 Pack price, and the saving is that minus the 2 Pack price. If you later change a price in Shopify, every number follows. If the 2 Pack ever costs the same as or more than two singles, the saving, badge and strikethrough disappear by themselves. A compare-at price shows only if Shopify has one that is higher than the selling price.
+
+   Because these are variants, **Shopify itself prices the cart and checkout**: the page only sends the chosen variant and quantity, so it cannot send a wrong price. The quantity stepper counts packs (2 of the 2 Pack = 4 brushes at $99.98). No discount code or app is needed.
 5. **Save.**
 6. Check the currency: **Settings > Store details** (store currency) and **Settings > Markets**. The price displays in USD when the store currency is USD. The theme can append "USD" after prices (Theme settings > Product and pricing).
 

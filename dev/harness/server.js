@@ -168,7 +168,7 @@ const videoObj = (file, w, h, mimeType = 'video/webm') => ({
   preview_image: img(1)
 });
 
-const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '', policies: false };
+const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '', policies: false, bundlePrice: 4999 };
 
 function makeProduct() {
   const mk = (id, title, options = {}) => ({
@@ -176,9 +176,10 @@ function makeProduct() {
     inventory_management: 'shopify', inventory_policy: 'deny', inventory_quantity: state.stock,
     featured_media: null, url: '/products/self-cleaning-pet-grooming-brush', image: null
   });
-  const variants = state.variants === 1
-    ? [mk(1001, 'Default Title')]
-    : [mk(1001, 'Option A'), mk(1002, 'Option B'), mk(1003, 'Option C', { available: false })];
+  let variants;
+  if (state.variants === 1) variants = [mk(1001, 'Default Title')];
+  else if (state.variants === 2) { variants = [mk(1001, '1 Pack'), mk(1002, '2 Pack')]; variants[1].price = state.bundlePrice; variants[1].compare_at_price = null; }
+  else variants = [mk(1001, 'Option A'), mk(1002, 'Option B'), mk(1003, 'Option C', { available: false })];
 
   let media = [];
   if (['media', 'productmedia', 'imagesonly'].includes(state.scenario)) {
@@ -421,10 +422,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* test controls */
-    if (p === '/__reset') { Object.assign(state, { policies: false, cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1 }); return send(res, 200, 'reset', 'text/plain'); }
+    if (p === '/__reset') { Object.assign(state, { bundlePrice: 4999, policies: false, cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1 }); return send(res, 200, 'reset', 'text/plain'); }
     if (p === '/__set') {
       for (const [k, v] of url.searchParams) {
-        if (['price', 'stock', 'maxQty', 'variants'].includes(k)) state[k] = parseInt(v, 10);
+        if (['price', 'stock', 'maxQty', 'variants', 'bundlePrice'].includes(k)) state[k] = parseInt(v, 10);
         else if (k === 'policies') state.policies = v === '1';
         else if (k === 'compareAt') state.compareAt = v ? parseInt(v, 10) : null;
         else if (k === 'scenario') state.scenario = v;
