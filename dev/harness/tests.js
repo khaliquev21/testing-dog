@@ -592,6 +592,21 @@ async function newPage(browser, opts = {}) {
     check('product vendor field never leaks into pages (brand comes from settings)', !/Not Pawora/.test(shop));
   }
 
+  group('Live saved templates (as edited in the Shopify theme editor)');
+  await reset(); await set('scenario=productmedia&templates=live');
+  {
+    const { ctx, page } = await newPage(browser);
+    for (const path of ['/', PRODUCT]) {
+      const res = await page.goto(BASE + path, { waitUntil: 'networkidle' });
+      check(`live templates render ${path} without errors`, res.status() === 200 && page.errors.length === 0, page.errors.join('|'));
+      check(`live templates ${path}: no horizontal scroll`, (await page.evaluate(() => document.documentElement.scrollWidth)) <= 1440);
+    }
+    await page.click('[data-add-to-cart]'); await page.waitForSelector('cart-drawer.is-open');
+    check('live product template: Add to Cart still works', (await state()).cart.length === 1);
+    await ctx.close();
+  }
+  await reset();
+
   await browser.close();
 
   const failed = results.filter((r) => !r.ok);

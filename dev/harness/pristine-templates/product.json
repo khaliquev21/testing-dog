@@ -1,0 +1,276 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "perk_1": {
+          "type": "perk",
+          "settings": {
+            "icon": "fur",
+            "title": "Helps remove loose fur",
+            "text": "Short and long coats"
+          }
+        },
+        "perk_2": {
+          "type": "perk",
+          "settings": {
+            "icon": "refresh",
+            "title": "Self-cleaning design",
+            "text": "Quicker clean-up"
+          }
+        },
+        "perk_3": {
+          "type": "perk",
+          "settings": {
+            "icon": "drop",
+            "title": "IPX7 waterproof",
+            "text": "Rated IPX7"
+          }
+        },
+        "info_shipping": {
+          "type": "info_row",
+          "settings": {
+            "kind": "shipping",
+            "icon": "truck",
+            "title": "Shipping & Delivery",
+            "text": "Delivery details and costs",
+            "item_1_label": "Processing time",
+            "item_2_label": "Delivery time",
+            "item_3_label": "Shipping cost",
+            "item_4_label": "Where we ship",
+            "policy": "shipping",
+            "policy_heading": "Our shipping policy",
+            "note": "Shipping options and costs for your address are shown at checkout, before you pay.",
+            "link_label": "Read the full shipping policy"
+          }
+        },
+        "info_returns": {
+          "type": "info_row",
+          "settings": {
+            "kind": "returns",
+            "icon": "return",
+            "title": "Returns & Refunds",
+            "text": "Eligibility, process and refunds",
+            "item_1_label": "Who can return",
+            "item_2_label": "How to start a return",
+            "item_3_label": "Refunds",
+            "policy": "refund",
+            "policy_heading": "Our refund policy",
+            "link_label": "Read the full refund policy"
+          }
+        },
+        "info_support": {
+          "type": "info_row",
+          "settings": {
+            "kind": "support",
+            "icon": "support",
+            "title": "Customer Support",
+            "text": "Order help and product questions",
+            "item_1_label": "Order help",
+            "item_1_text": "Have your order number from your confirmation email ready so we can find your order quickly.",
+            "item_2_label": "Product help",
+            "item_2_text": "Questions about using or caring for your brush? Tell us what you need help with in your message.",
+            "policy": "none",
+            "link": "/pages/contact",
+            "link_label": "Contact us"
+          }
+        }
+      },
+      "block_order": [
+        "perk_1",
+        "perk_2",
+        "perk_3",
+        "info_shipping",
+        "info_returns",
+        "info_support"
+      ],
+      "settings": {
+        "show_breadcrumb": true,
+        "autoplay_videos": true,
+        "variant_label": "Choose your bundle",
+        "badge_variant": "",
+        "badge_text": "BEST VALUE",
+        "low_stock_threshold": 5,
+        "subtitle": "Steam mist brush · For dogs & cats · Short or long hair",
+        "description_source": "text",
+        "description": "A deshedding brush with a built-in steam mist and a self-cleaning design. Rated IPX7 waterproof and described as skin friendly, it's made for dogs and cats with short or long hair.",
+        "note": "In the box: 1 brush, 1 shampoo."
+      }
+    },
+    "details": {
+      "type": "feature-details",
+      "blocks": {
+        "feature_1": {
+          "type": "feature",
+          "settings": {
+            "image_alt": "",
+            "product_media_position": 0,
+            "title": "Self-Cleaning Design",
+            "text": "Made so collected fur comes off the brush without picking it out by hand."
+          }
+        },
+        "feature_2": {
+          "type": "feature",
+          "settings": {
+            "image_alt": "",
+            "product_media_position": 0,
+            "title": "Steam Mist",
+            "text": "A built-in mist function on a brush described as skin friendly."
+          }
+        },
+        "feature_3": {
+          "type": "feature",
+          "settings": {
+            "image_alt": "",
+            "product_media_position": 0,
+            "title": "IPX7 Waterproof",
+            "text": "Rated IPX7 waterproof."
+          }
+        }
+      },
+      "block_order": [
+        "feature_1",
+        "feature_2",
+        "feature_3"
+      ],
+      "settings": {
+        "eyebrow": "THE DETAILS",
+        "heading": "Designed for Easier Grooming",
+        "video_url": "",
+        "video_caption": "The self-cleaning mechanism"
+      }
+    },
+    "how_it_works": {
+      "type": "how-it-works",
+      "blocks": {
+        "step_1": {
+          "type": "step",
+          "settings": {
+            "image": "shopify://shop_images/pet_grooming_image_upload.jpg",
+            "video_url": "",
+            "image_alt": "",
+            "product_media_position": 0,
+            "title": "Brush",
+            "text": "Brush through your pet's coat to help lift loose fur."
+          }
+        },
+        "step_2": {
+          "type": "step",
+          "settings": {
+            "image": "shopify://shop_images/pet_grooming_image_2_upload.jpg",
+            "video_url": "",
+            "image_alt": "",
+            "product_media_position": 0,
+            "title": "Clean",
+            "text": "Use the self-cleaning design to clear the collected fur."
+          }
+        },
+        "step_3": {
+          "type": "step",
+          "settings": {
+            "image": "shopify://shop_images/pet_grooming_image_3_upload.jpg",
+            "video_url": "",
+            "image_alt": "",
+            "product_media_position": 0,
+            "title": "Finish",
+            "text": "Finish the session and put the brush away ready for next time."
+          }
+        }
+      },
+      "block_order": [
+        "step_1",
+        "step_2",
+        "step_3"
+      ],
+      "settings": {
+        "eyebrow": "HOW IT WORKS",
+        "heading": "Three simple steps"
+      }
+    },
+    "reviews": {
+      "type": "reviews",
+      "settings": {
+        "eyebrow": "REVIEWS",
+        "heading": "What Pet Parents Say",
+        "text": "Grooming my golden retriever used to leave loose fur all over the sofa and floor. I wanted something that would make brushing easier without turning cleanup into another chore. The self-cleaning feature is especially convenient because it helps release the collected fur without having to pull it out of the bristles by hand. My dog can relax while I brush him, and keeping his coat tidy feels much more manageable. It’s a handy addition to our regular grooming routine.",
+        "layout": "split"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q_pets": {
+          "type": "question",
+          "settings": {
+            "question": "Which pets can use the brush?",
+            "answer": "<p>It's made for both dogs and cats.</p>"
+          }
+        },
+        "q_coats": {
+          "type": "question",
+          "settings": {
+            "question": "Which coat types is it suitable for?",
+            "answer": "<p>It's made for short and long hair, including breeds such as Poodles, Doodles, Bulldogs, Golden Retrievers and Labradors.</p>"
+          }
+        },
+        "q_selfclean": {
+          "type": "question",
+          "settings": {
+            "question": "How does the self-cleaning feature work?",
+            "answer": ""
+          }
+        },
+        "q_steam": {
+          "type": "question",
+          "settings": {
+            "question": "How does the steam feature work?",
+            "answer": ""
+          }
+        },
+        "q_clean": {
+          "type": "question",
+          "settings": {
+            "question": "How do I clean the brush?",
+            "answer": ""
+          }
+        },
+        "q_policies": {
+          "type": "question",
+          "settings": {
+            "question": "What are the shipping and return policies?",
+            "answer": "<p>You'll find the details in our <a href=\"/policies/shipping-policy\">shipping policy</a> and <a href=\"/policies/refund-policy\">refund policy</a>.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "q_pets",
+        "q_coats",
+        "q_selfclean",
+        "q_steam",
+        "q_clean",
+        "q_policies"
+      ],
+      "settings": {
+        "eyebrow": "FAQ",
+        "heading": "Questions, answered",
+        "first_open": true
+      }
+    }
+  },
+  "order": [
+    "main",
+    "details",
+    "how_it_works",
+    "reviews",
+    "faq"
+  ]
+}

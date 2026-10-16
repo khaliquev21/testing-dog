@@ -7,7 +7,7 @@ All of this ran against the real theme files in this repository.
 | Check | Result |
 | --- | --- |
 | Shopify `theme-check` (Liquid syntax, schema, templates) | 43 theme files, **0 offenses** (preload-style hints disabled in `.theme-check.yml`) |
-| Behaviour tests in headless Chromium (`dev/harness/tests.js`) | **169 of 169 passed** |
+| Behaviour tests in headless Chromium (`dev/harness/tests.js`) | **174 of 174 passed** |
 | Extra checks (`extra-checks.js`) | Cart-as-page mode, fonts, no third-party requests, class coverage: all passed |
 | Responsive sweep (`sweep.js`) | **No horizontal scrolling** in 120 page/width combinations (320 px to 1920 px, 5 page types, with and without media) |
 | Colour audit (`audit.js`) | 26 distinct colour values, all warm hues. **0 green** in the source and **0 green in 22,737 computed colour values** across 20 page/viewport combinations |
@@ -28,6 +28,10 @@ All of this ran against the real theme files in this repository.
 - **Content rules:** no placeholders for shoppers, no fake reviews or ratings, no bundle UI unless the product has real variants, the product's vendor field never shows (the brand comes from theme settings).
 - **Mobile:** menu, search, tap-target sizes (40 px minimum) and no sideways scrolling.
 
+### Default content versus your saved editor content
+
+Default-state tests ("nothing set means nothing shown") run against a pristine snapshot of the shipped templates in `dev/harness/pristine-templates/`, because the Shopify theme editor rewrites `templates/*.json` with your own content. A final group renders your **live saved templates** and checks they load without errors, do not scroll sideways and still add to cart.
+
 ## Limits: what these tests do not prove
 
 Be clear-eyed about these before you rely on the results.
@@ -47,7 +51,7 @@ npm install                # liquidjs, playwright-core, theme-check, axe-core, b
 sh make-fixtures.sh        # synthetic fixtures (needs ImageMagick and ffmpeg)
 ./restart.sh               # starts the mock Shopify on http://localhost:4177
 npm run lint               # Shopify theme-check
-npm test                   # 169 behaviour checks
+npm test                   # 174 behaviour checks
 npm run audit              # green, wording and accessibility audits
 npm run extra
 npm run sweep              # responsive overflow sweep
