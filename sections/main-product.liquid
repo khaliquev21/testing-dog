@@ -267,6 +267,9 @@
             </fieldset>
           {%- else -%}
             <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
+            {%- if request.design_mode -%}
+              <p class="pw-acc__todo">Bundle cards are hidden because this product has only one variant. In Shopify admin, open the product and add an option "Pack size" with the values "1 Pack" and "2 Pack", then set each price. They appear here automatically. Shoppers do not see this note.</p>
+            {%- endif -%}
           {%- endif -%}
 
           {%- if bundle_mode -%}
