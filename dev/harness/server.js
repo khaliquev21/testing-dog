@@ -171,15 +171,25 @@ const videoObj = (file, w, h, mimeType = 'video/webm') => ({
 const state = { cartType: null, cart: [], price: 2999, compareAt: null, stock: 50, scenario: 'empty', maxQty: 10, variants: 1, comment: '', policies: false, bundlePrice: 4999, templates: 'pristine', reviews: 0 };
 
 function makeProduct() {
+  let optionNames = ['Style'];
   const mk = (id, title, options = {}) => ({
-    id, title, price: state.price, compare_at_price: state.compareAt, available: options.available !== false,
+    id, title, options: options.opts || [title], price: state.price, compare_at_price: state.compareAt, available: options.available !== false,
     inventory_management: 'shopify', inventory_policy: 'deny', inventory_quantity: state.stock,
     featured_media: null, url: '/products/self-cleaning-pet-grooming-brush', image: null
   });
   let variants;
   if (state.variants === 1) variants = [mk(1001, 'Default Title')];
-  else if (state.variants === 2) { variants = [mk(1001, '1 Pack'), mk(1002, '2 Pack')]; variants[1].price = state.bundlePrice; variants[1].compare_at_price = null; }
-  else variants = [mk(1001, 'Option A'), mk(1002, 'Option B'), mk(1003, 'Option C', { available: false })];
+  else if (state.variants === 2) { optionNames = ['Bundle']; variants = [mk(1001, '1 Brush'), mk(1002, '2 Brushes')]; variants[1].price = state.bundlePrice; variants[1].compare_at_price = null; }
+  else if (state.variants === 4) {
+    /* The broken store set-up: ONE variant whose two options join into the title "1 Brush / 2 Brushes" */
+    optionNames = ['Size', 'Bundle'];
+    variants = [mk(1001, '1 Brush / 2 Brushes', { opts: ['1 Brush', '2 Brushes'] })]; variants[0].price = 2200; variants[0].compare_at_price = null;
+  } else if (state.variants === 5) {
+    /* Bundle plus a second option: several variants share each Bundle value */
+    optionNames = ['Style', 'Bundle'];
+    variants = [mk(1001, 'Classic / 1 Brush', { opts: ['Classic', '1 Brush'] }), mk(1002, 'Classic / 2 Brushes', { opts: ['Classic', '2 Brushes'] }), mk(1003, 'Plus / 1 Brush', { opts: ['Plus', '1 Brush'] }), mk(1004, 'Plus / 2 Brushes', { opts: ['Plus', '2 Brushes'] })];
+    variants[1].price = state.bundlePrice; variants[3].price = state.bundlePrice;
+  } else variants = [mk(1001, 'Option A'), mk(1002, 'Option B'), mk(1003, 'Option C', { available: false })];
 
   let media = [];
   if (['media', 'productmedia', 'imagesonly'].includes(state.scenario)) {
@@ -192,13 +202,13 @@ function makeProduct() {
     if (state.scenario !== 'imagesonly') media.push(v, v2);
   }
   variants[0].featured_media = media[0] || null;
-  if (state.variants > 1 && media.length > 3) variants[1].featured_media = media[3];
+  if (variants[1] && media.length > 3) variants[1].featured_media = media[3];
   const product = {
     id: 9001, title: 'Self-Cleaning Pet Grooming Brush', handle: 'self-cleaning-pet-grooming-brush',
     url: '/products/self-cleaning-pet-grooming-brush', vendor: 'Not Pawora (should never show)',
     price: state.price, compare_at_price: state.compareAt, description: '<p>Description from Shopify.</p>',
-    variants, selected_or_first_available_variant: variants[0], has_only_default_variant: variants.length === 1,
-    options_with_values: [{ name: 'Style', values: variants.map((v) => v.title) }],
+    variants, selected_or_first_available_variant: variants[0], has_only_default_variant: variants.length === 1 && variants[0].title === 'Default Title',
+    options: optionNames, options_with_values: optionNames.map((name, i) => ({ name, values: [...new Set(variants.map((v) => v.options[i]))] })),
     media, featured_media: media[0] || null, available: true, type: 'Pet grooming'
   };
   variants.forEach((v) => (v.product = product));

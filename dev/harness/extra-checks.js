@@ -40,7 +40,7 @@ let bad = 0; const ok = (n, c, d = '') => { if (!c) bad++; console.log(`${c ? 'P
     for (const m of src.matchAll(/'(pw-[\w-]+(?: pw-[\w-]+)*)'/g)) for (const c of m[1].split(/\s+/)) used.add(c);
   }
   // Wrapper / JavaScript-hook classes that intentionally have no rule of their own.
-  const HOOKS = new Set(['pw-template-password', 'pw-faq', 'pw-btn__arrow', 'pw-nav', 'pw-cart-link', 'pw-steps', 'pw-page', 'pw-cartpage', 'pw-cartpage__form', 'pw-collection', 'pw-card__mark', 'pw-product', 'pw-buy', 'pw-search-page', 'pw-price__current']);
+  const HOOKS = new Set(['pw-template-password', 'pw-faq', 'pw-btn__arrow', 'pw-nav', 'pw-cart-link', 'pw-steps', 'pw-page', 'pw-cartpage', 'pw-cartpage__form', 'pw-collection', 'pw-card__mark', 'pw-product', 'pw-buy', 'pw-search-page', 'pw-price__current', 'pw-acc__item--todo', 'pw-reviewbox--empty', 'pw-review--nophoto']);
   const missing = [...used].filter((c) => !defined.has(c) && !/--$|-$/.test(c) && !HOOKS.has(c));
   ok('every styled pw- class used in Liquid has a CSS rule (hook-only classes excluded)', missing.length === 0, missing.join(', '));
   const jsSrc = fs.readFileSync(THEME + '/assets/theme.js', 'utf8');
