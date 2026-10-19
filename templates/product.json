@@ -12,6 +12,17 @@
     "main": {
       "type": "main-product",
       "blocks": {
+        "review_VYb3FN": {
+          "type": "review",
+          "settings": {
+            "photo_alt": "Finally No more “fur clouds” in my house ！",
+            "rating": 4,
+            "title": "",
+            "text": "",
+            "name": "",
+            "verified": false
+          }
+        },
         "perk_1": {
           "type": "perk",
           "settings": {
@@ -116,6 +127,7 @@
         }
       },
       "block_order": [
+        "review_VYb3FN",
         "perk_1",
         "perk_2",
         "perk_3",
@@ -129,6 +141,7 @@
         "variant_label": "Choose your bundle",
         "badge_variant": "",
         "badge_text": "BEST VALUE",
+        "bundle_copy": "Keep a spare or groom more than one pet.",
         "low_stock_threshold": 5,
         "subtitle": "Steam mist brush · For dogs & cats · Short or long hair",
         "description_source": "text",
